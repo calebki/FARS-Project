@@ -1,0 +1,82 @@
+---
+title: "Statistical learning: MDSR Chapter 8 (STAT495)"
+author: "Nicholas Horton (nhorton@amherst.edu)"
+date: "October 31, 2016"
+output: 
+  pdf_document:
+    fig_height: 3
+    fig_width: 6
+  html_document:
+    fig_height: 3
+    fig_width: 5
+  word_document:
+    fig_height: 3
+    fig_width: 5
+---
+
+```{r, setup, include=FALSE}
+library(mdsr)   # Load additional packages here 
+
+# Some customization.  You can alter or delete as desired (if you know what you are doing).
+trellis.par.set(theme=theme.mosaic()) # change default color scheme for lattice
+knitr::opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits=4)
+```
+
+### HW #5 sample solution
+
+### Project feedback
+
+### MSA
+
+#### What's working well
+
+- R and applications; real work experiences
+- breadth of topics
+- lecturing is getting better (feel safer)
+- collaboration plus individual work
+
+#### What's working not quite as well
+
+- too many deliverables, need more time!
+- Wikipedia: how does it fit in?
+- CASI on test (surprise!)
+
+#### How can Nick help you master learning outcomes for the course?
+
+- more time!
+- too many little assignments
+- spark and bigger data
+- non-class day office hours
+- more info on factor analysis and ridge regression
+
+### Learning from Data
+
+Flight delays have serious costs in terms of time and money. The `nycflights13` data set has a table `flights` that contains a continuous `arr_delay` that indicates the deviation between the actual and scheduled arrival time. Use this variable to create a dichotomous indicator `late` which is true if the arrival delay is greater than 15 minutes.  For each of the following models:
+  \begin{enumerate}
+    \item Build at least three classifiers for `late`
+    \item Compare their effectiveness on the `nycflights13` training data
+    \item Make an appropriate visualization of the model
+    \item Interpret the results. What have you learned about flight delays?
+  \end{enumerate}
+
+My advice: for now keep it simple!
+
+```{r}
+library(nycflights13)
+set.seed(1999)
+flights <- flights %>%
+  mutate(trainprob = runif(nrow(flights)),
+         late = ifelse(arr_delay > 15, "late", "on time")
+  ) # your recoding and the like go here
+train <- filter(flights, trainprob < 0.8)
+test <- filter(flights, trainprob >= 0.8)
+dim(train)
+dim(test)
+tally(~ late, format="prop", data=train)
+```
+
+```{r}
+
