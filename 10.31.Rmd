@@ -69,19 +69,30 @@ library(nycflights13)
 set.seed(1999)
 flights <- flights %>%
   mutate(trainprob = runif(nrow(flights)),
-         late = ifelse(arr_delay > 15, "late", "on time")
-  ) # your recoding and the like go here
+         late = ifelse(arr_delay > 15, "late", "on time"))
+
+#flights$late <- as.factor(flights$late)
+flights <- na.omit(flights)
+flights$late <- as.factor(flights$late)
 train <- filter(flights, trainprob < 0.8)
 test <- filter(flights, trainprob >= 0.8)
 dim(train)
 dim(test)
 tally(~ late, format="prop", data=train)
-flights$late <- as.factor(flights$late)
-
 ```
 
 ```{r}
-require(rpart)
-sched_dep_time + distance
+#require(rpart)
+library(rpart)				        # Popular decision tree algorithm
+library(rattle)					# Fancy tree plot
+library(rpart.plot)				# Enhanced tree plots
+library(RColorBrewer)				# Color selection for fancy tree plot
+library(party)					# Alternative decision tree algorithm
+library(partykit)				# Convert rpart object to BinaryTree
+library(caret)					# Just a data source for this script
+
+late.rpart1 = rpart(late ~ distance + dep_time + air_time, 
+                     data = train)
+rpart.plot(late.rpart1)
 ```
 
