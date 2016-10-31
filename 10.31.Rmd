@@ -76,7 +76,12 @@ test <- filter(flights, trainprob >= 0.8)
 dim(train)
 dim(test)
 tally(~ late, format="prop", data=train)
+flights$late <- as.factor(flights$late)
+
 ```
 
 ```{r}
+require(rpart)
+sched_dep_time + distance
+```
 
