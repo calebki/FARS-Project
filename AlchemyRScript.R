@@ -67,7 +67,7 @@ df = try(data.frame(matrix(unlist(keywords1$taxonomy), nrow = length(keywords1$t
 baseurl = 'http://gateway-a.watsonplatform.net/calls/url/URLGetRankedKeywords?apikey=61eebcea6c0dc3b63544a80d8416cf9e515460a7&outputMode=json&url=http://'
 keywords = content(GET(paste0(baseurl, as.character('msn.com'))))
 df = try(data.frame(matrix(unlist(keywords$keywords), nrow = length(keywords$keywords), ncol = 7, byrow = T), site=as.character('msn.com')))
-
+#df
 #Code for reading the above file as a table in R
 library(data.table)
 newresults<-rbindlist(results, fill=TRUE) #unbinds the lists as data frame
