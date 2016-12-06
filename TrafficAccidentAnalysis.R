@@ -1,5 +1,8 @@
+
 data = read.csv("accident.csv")
 library(dplyr)
+library(mlbench)
+library(caret)
 
 
 small <- data %>% dplyr::select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V_PREV_ACC, 
@@ -16,17 +19,27 @@ small %>% mutate(TravSpeed = readr::parse_number(V_TRAV_SP),
 
 
 small <- small %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
-                 Age = as.numeric(P_AGE),
-                 PDWI = as.numeric(V_PREV_DWI),
-                 PSuspension = as.numeric(V_PREV_SUS),
-                 PCrash = as.numeric(V_PREV_ACC),
-                 PSpeed = as.numeric(V_PREV_SPD))
+                          Age = as.numeric(P_AGE),
+                          PDWI = as.numeric(V_PREV_DWI),
+                          PSuspension = as.numeric(V_PREV_SUS),
+                          PCrash = as.numeric(V_PREV_ACC),
+                          PSpeed = as.numeric(V_PREV_SPD))
+
+control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+model <- train(P_DOA~., data=small, method="lvq", preProcess="scale", trControl=control)
+
+
+#model <- glm(P_DOA ~ TravSpeed + V_DR_DRINK + PSuspension + PCrash + PSpeed + PDWI,
+             #family=binomial(link='logit'),data=small)
+importance <- varImp(model, scale = FALSE)
+print(importance)
 
 n <- nrow(small)
 shuffled <- small[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
+#use PCA or factor analysis for feature section 
 
 tree <- rpart( ~ ., train, method = "class") #use all the variables to predict the label 
 pred <- predict(tree, test, type = "class")
@@ -35,4 +48,5 @@ conf <- table(test$label, pred)
 rpart.plot(tree)
 library(partykit)
 plot(as.party(tree)) #how to interpret the nodes 
+
 
