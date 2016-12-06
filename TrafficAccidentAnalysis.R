@@ -1,13 +1,11 @@
 data = read.csv("accident.csv")
 library(dplyr)
-class(data$P.DOA)
-View(data)
 
 
 small <- data %>% dplyr::select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V_PREV_ACC, 
                                 V_PREV_SUS, V_PREV_DWI, V_PREV_SPD, V_VALIGN, V_VPAVETYP, V_VSURCOND,
                                 A_LGT_COND, A_FATALS, A_DRUNK_DR, A_WEATHER, A_WEATHER1, A_WEATHER2, A_WRK_ZONE, A_MAN_COLL,
-                                P_AGE, P_SEX, P_INJ_SEV + P_SEAT_POS, P_AIR_BAG, P_EJECTION, P_EJ_PATH, P_DRINKING, P_DRUGS, P_LAG_HRS)
+                                P_AGE, P_SEX, P_INJ_SEV + P_SEAT_POS, P_AIR_BAG, P_EJECTION, P_EJ_PATH, P_DRINKING, P_DRUGS, P_LAG_HRS, P_DOA)
 
 small %>% mutate(TravSpeed = readr::parse_number(V_TRAV_SP),
                  Age = readr::parse_number(P_AGE),
@@ -17,6 +15,24 @@ small %>% mutate(TravSpeed = readr::parse_number(V_TRAV_SP),
                  PSpeed = readr:parse_number(V_PREV_SPD))
 
 
+small <- small %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
+                 Age = as.numeric(P_AGE),
+                 PDWI = as.numeric(V_PREV_DWI),
+                 PSuspension = as.numeric(V_PREV_SUS),
+                 PCrash = as.numeric(V_PREV_ACC),
+                 PSpeed = as.numeric(V_PREV_SPD))
+
+n <- nrow(small)
+shuffled <- small[sample(n),]
+train <- shuffled[1:round(0.7 * n),]
+test <- shuffled[(round(0.7 * n) + 1):n,]
 
 
-data2$dat <- readr::parse_number(data$V_PREV_SPD)
+tree <- rpart( ~ ., train, method = "class") #use all the variables to predict the label 
+pred <- predict(tree, test, type = "class")
+
+conf <- table(test$label, pred)
+rpart.plot(tree)
+library(partykit)
+plot(as.party(tree)) #how to interpret the nodes 
+
