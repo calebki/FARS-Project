@@ -123,13 +123,14 @@ JoinedData <- inner_join(AllStateData, Acc2, by = "state")
 AllStateData <- AllStateData[, !duplicated(colnames(AllStateData))]
 #save(AllStateData, file="AllStatesData.Rda")
 
-
-###QQQ. how to join them so the states is repeated for each of the rows?
-
-
+JoinedDataFinal <- merge(AllStateData, Acc2) #merge Accident dataset with AllStateACS dataset 
+save(JoinedDataFinal, file="JoinedDataFinal.Rda")
 
 
 
+
+
+#QQQ. how to load in the data 
 #load("SexByAge.Rda")
 #B01003_001E #total population
 #B02001_001E #race
