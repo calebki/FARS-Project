@@ -110,9 +110,27 @@ save(df11, file="Race.Rda")
 
 AllStateData <- cbind(df1,df2,df3,df5,df6,df7,df8,df10,df11)
 save(AllStateData, file="AllStatesData.Rda")
+library(dplyr)
+Acc <- read.csv("AccidentGeo.csv")
+Acc1 <- rename(Acc, c("A_STATE"="state"))
+AllStateData$state <- as.factor(AllStateData$state)
+
+Acc2 <- as.data.frame(lapply(Acc1, function(state) factor(as.character(state), levels=levels(state)[levels(state) != "STATE"])))
+
+#Drop the state level in the Acc1 dataset and try again 
+JoinedData <- inner_join(AllStateData, Acc2, by = "state")
+
+AllStateData <- AllStateData[, !duplicated(colnames(AllStateData))]
+#save(AllStateData, file="AllStatesData.Rda")
+
+
+###QQQ. how to join them so the states is repeated for each of the rows?
+
+
+
+
 
 #load("SexByAge.Rda")
-
 #B01003_001E #total population
 #B02001_001E #race
 #B08013_001E #aggregate travel time to work
