@@ -20,8 +20,6 @@ getCensusApi <- function(data_url,vars,region,key,numeric=TRUE){
     get <- paste(vars, sep='', collapse=',')
     data <- list(getCensusApi2(data_url,get,region,key,numeric=TRUE))
   }
-  # Format output.  If there were no errors, than paste the data together
-  # If there is an error, just return the unformatted list.
   if(all(sapply(data, is.data.frame))){
     colnames <- unlist(lapply(data, names))
     data <- do.call(cbind,data)
@@ -55,20 +53,10 @@ getCensusApi2 <- function(data_url,get,region,key,numeric=TRUE){
     print(api_call)
     return}
   dat_df <- data.frame()
-  
-  #split the datastream into a list with each row as an element
-  # Thanks to roodmichael on github
   tmp <- strsplit(gsub("[^[:alnum:], _]", '', dat_raw), "\\,")
-  #dat_df <- rbind(dat_df, t(sapply(tmp, '[')))
-  #names(dat_df) <- sapply(dat_df[1,], as.character)
-  #dat_df <- dat_df[-1,]
   dat_df <- as.data.frame(do.call(rbind, tmp[-1]), stringsAsFactors=FALSE)
   #print(dat_df)
   names(dat_df) <- tmp[[1]]
-  # convert to numeric
-  # The fips should stay as character... so how to distinguish fips from data?
-  # I think all of the data have numbers in the names, the fips do not
-  #  Example: field names of B01001_001E vs state
   if(numeric==TRUE){
     value_cols <- grep("[0-9]", names(dat_df), value=TRUE)
     for(col in value_cols) dat_df[,col] <- as.numeric(as.character(dat_df[,col]))
@@ -97,7 +85,6 @@ study_area <- data.frame(county = c('Cannon', 'Cheatham', 'Davidson', 'Dickson',
 vars1 <- paste('B01001_', sprintf('%03i', seq(1, 49)), 'E', sep='') #sex by age
 vars2 <- paste('C17001_', sprintf('%03i', seq(1, 19)), 'E', sep='') #poverty status by sex, by age
 vars3 <- paste('C22001_', sprintf('%03i', seq(1, 3)), 'E', sep='') #food stamp receipient 
-vars4 <- paste('C17001_', sprintf('%03i', seq(1, 19)), 'E', sep='') #poverty status by sex, by age
 vars5 <- paste('C27001_', sprintf('%03i', seq(1, 21)), 'E', sep='') #health insurance coverage status
 vars6 <- paste('C17002_', sprintf('%03i', seq(1, 1)), 'E', sep='') #poverty to ratio income 
 vars7 <- paste('C17003_', sprintf('%03i', seq(1, 11)), 'E', sep='') #poverty status by education  
@@ -111,23 +98,22 @@ length(States1)
 St <- States1[1:51]
 
 # Create an empty data.frame to hold the results in:
-df <- NULL
-for(cty in St){# For each county
-  #Construct the regions part of the API Call
+df7 <- NULL
+for(cty in St){
   region = paste("for=state:", cty, sep='')
   # Pull data
-  temp.df <- getCensusApi(sf1_2010_api, vars=c("B00001_001E"), region=region, key=key)
-  df <- rbind(df, temp.df)
+  temp.df <- getCensusApi(sf1_2010_api, vars=vars7, region=region, key=key)
+  df7 <- rbind(df7, temp.df)
 }
 
+save(df7, file="PovertyByEducation.Rda")
 
 
 
 
 
 
-
-
+load("SexByAge.Rda")
 
 #B01003_001E #total population
 #B02001_001E #race
