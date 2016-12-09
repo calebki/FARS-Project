@@ -89,7 +89,7 @@ vars5 <- paste('C27001_', sprintf('%03i', seq(1, 21)), 'E', sep='') #health insu
 vars6 <- paste('C17002_', sprintf('%03i', seq(1, 1)), 'E', sep='') #poverty to ratio income 
 vars7 <- paste('C17003_', sprintf('%03i', seq(1, 11)), 'E', sep='') #poverty status by education  
 vars8 <- paste('C17017_', sprintf('%03i', seq(1, 19)), 'E', sep='') #poverty status by household type
-vars9 <- paste('C17022_', sprintf('%03i', seq(1, 21)), 'E', sep='') #ratio of income to poverty level of families 
+#vars9 <- paste('C17022_', sprintf('%03i', seq(1, 21)), 'E', sep='') #ratio of income to poverty level of families 
 vars10 <- paste('B01003_', sprintf('%03i', seq(1, 1)), 'E', sep='') #total population 
 vars11 <- paste('B02001_', sprintf('%03i', seq(1, 10)), 'E', sep='') #Race 
 
@@ -98,22 +98,20 @@ length(States1)
 St <- States1[1:51]
 
 # Create an empty data.frame to hold the results in:
-df7 <- NULL
+df11 <- NULL
 for(cty in St){
   region = paste("for=state:", cty, sep='')
   # Pull data
-  temp.df <- getCensusApi(sf1_2010_api, vars=vars7, region=region, key=key)
-  df7 <- rbind(df7, temp.df)
+  temp.df <- getCensusApi(sf1_2010_api, vars=vars11, region=region, key=key)
+  df11 <- rbind(df11, temp.df)
 }
 
-save(df7, file="PovertyByEducation.Rda")
+save(df11, file="Race.Rda")
 
+AllStateData <- cbind(df1,df2,df3,df5,df6,df7,df8,df10,df11)
+save(AllStateData, file="AllStatesData.Rda")
 
-
-
-
-
-load("SexByAge.Rda")
+#load("SexByAge.Rda")
 
 #B01003_001E #total population
 #B02001_001E #race
