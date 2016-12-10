@@ -26,3 +26,15 @@ for(cty in St){
   temp.df <- getCensusApi(sf1_2010_api, vars=vars11, region=region, key=key)
   df11 <- rbind(df11, temp.df)
 }
+
+df12 <- NULL
+for (cty in CList){
+  split <- strsplit(cty,'_',fixed=TRUE)
+  state <- split[[1]][1]
+  county <- split[[1]][2]
+  psrc=geo.make(state=state, county=county)
+  data1 <- acs.fetch(geography=psrc, table.name="B17001",
+                     endyear=2015, col.names="pretty")
+  data2 <- as.data.frame((estimate(data)))
+  df12 <- rbind(df12, data2)
+}
