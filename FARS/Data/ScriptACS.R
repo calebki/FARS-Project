@@ -3,7 +3,15 @@
 #population density 
 
 Accident <- read.csv("AccidentGeo.csv")
+
 States <- Accident$A_STATE
+County <- Accident$A_COUNTY
+
+States <- States[States!="STATE"]
+States <- factor(States)
+
+County <- County[County!="COUNTY"]
+County <- factor(County)
 
 data <- acs.fetch(geography=psrc, table.name="MARITAL STATUS",
                   endyear=2014, col.names="pretty")
@@ -56,10 +64,15 @@ getCensusApi2 <- function(data_url,get,region,key,numeric=TRUE){
   tmp <- strsplit(gsub("[^[:alnum:], _]", '', dat_raw), "\\,")
   dat_df <- as.data.frame(do.call(rbind, tmp[-1]), stringsAsFactors=FALSE)
   #print(dat_df)
-  names(dat_df) <- tmp[[1]]
-  if(numeric==TRUE){
-    value_cols <- grep("[0-9]", names(dat_df), value=TRUE)
-    for(col in value_cols) dat_df[,col] <- as.numeric(as.character(dat_df[,col]))
+  if (nrow(dat_df) == 0){
+    #names(dat_df) <- "null"
+  }
+  else{
+    names(dat_df) <- tmp[[1]]
+    if(numeric==TRUE){
+      value_cols <- grep("[0-9]", names(dat_df), value=TRUE)
+      for(col in value_cols) dat_df[,col] <- as.numeric(as.character(dat_df[,col]))
+    }
   }
   return(dat_df)
 }
@@ -72,7 +85,15 @@ vecToChunk <- function(x, max=50){
 
 key = '3dbabece4401ad72afa36a118e2cf777efa2afb3'
 sf1_2010_api <- 'http://api.census.gov/data/2015/acs1?'
-daa3 <- getCensusApi(sf1_2010_api, vars = c("B00001_001E"),region="for=place:*&",key = key)
+
+"http://api.census.gov/data/2015/acs1?get=NAME,B01001_015E&for=county:051&in=state:41&key=3dbabece4401ad72afa36a118e2cf777efa2afb3"
+
+region = paste("for=county:",051,"&in=state:",41,sep = '')
+temp.df <- getCensusApi(sf1_2010_api, vars=vars10, region=region, key=key)
+
+"for=place:*&in=state:06"
+daa3 <- getCensusApi(sf1_2010_api, vars = c("B00001_001E"),region="for=state:06",key = key) #this works 
+daa4 <- getCensusApi(sf1_2010_api, vars = c("B00001_001E"),region="for=county:051&in=state:41",key = key) #both work 
 
 study_area <- data.frame(county = c('Cannon', 'Cheatham', 'Davidson', 'Dickson', 'Hickman', 'Macon', 'Maury', 
                                     'Robertson', 'Rutherford', 'Smith', 'Sumner', 'Trousdale', 'Williamson', 'Wilson'),
@@ -97,10 +118,38 @@ States1<- unique(States)
 length(States1)
 St <- States1[1:51]
 
+Accident %>%
+  dplyr::select(A_COUNTY,A_STATE) %>%
+  head(50)
+
+###########creating tables for extracting county level data 
+CList = paste(States, County, sep="_") #concatenate States and Counties together
+CList <- CList[1:20]
+df11 <- NULL
+for (cty in CList){
+  #print(cty)
+  split <- strsplit(cty,'_',fixed=TRUE)
+  state <- split[[1]][1]
+  county <- split[[1]][2]
+  region = paste("for=county:",county,"&in=state:",state,sep = '')
+  temp.df <- getCensusApi(sf1_2010_api, vars=vars10, region=region, key=key)
+  #print(temp.df)
+  df11 <- rbind(df11, temp.df)
+}
+
+
+
+
+
+
+name <- strsplit(CList1,'_',fixed=TRUE)
+name[[1]][1]
+name[[1]][2]
 # Create an empty data.frame to hold the results in:
 df11 <- NULL
 for(cty in St){
-  region = paste("for=state:", cty, sep='')
+  print(cty)
+  region = paste("for=county:",county,"&in=state:",state,sep = '')
   # Pull data
   temp.df <- getCensusApi(sf1_2010_api, vars=vars11, region=region, key=key)
   df11 <- rbind(df11, temp.df)
@@ -129,8 +178,24 @@ save(JoinedDataFinal, file="JoinedDataFinal.Rda")
 
 #################Pulling Counties Level Data
 
-http://api.census.gov/data/2015/acs1?get=NAME,B01001_015E&for=county:051&in=state:41&key=3dbabece4401ad72afa36a118e2cf777efa2afb3
 
+psrc=geo.make(state="WA", county=c(33,35,53,61))
+data <- acs.fetch(geography=psrc, table.name="B17001",
+                  endyear=2015, col.names="pretty")
+data2 <- as.data.frame((estimate(data))) #function to extract just the estimates 
+
+
+df12 <- NULL
+for (cty in CList){
+  split <- strsplit(cty,'_',fixed=TRUE)
+  state <- split[[1]][1]
+  county <- split[[1]][2]
+  psrc=geo.make(state=state, county=county)
+  data1 <- acs.fetch(geography=psrc, table.name="B17001",
+            endyear=2015, col.names="pretty")
+  data2 <- as.data.frame((estimate(data)))
+  df12 <- rbind(df12, data2)
+}
 
 
 
