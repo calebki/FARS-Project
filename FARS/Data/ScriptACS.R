@@ -82,7 +82,7 @@ study_area <- data.frame(county = c('Cannon', 'Cheatham', 'Davidson', 'Dickson',
 
 #Adjust this script to pull data for all counties
 #Adjust this script to pull data for number of variables (found for variables)
-vars1 <- paste('B01001_', sprintf('%03i', seq(1, 49)), 'E', sep='') #sex by age
+vars1 <- paste('B01001_', sprintf('%03i', seq(1, 49)), 'E', sep='') #Population by sex by age 
 vars2 <- paste('C17001_', sprintf('%03i', seq(1, 19)), 'E', sep='') #poverty status by sex, by age
 vars3 <- paste('C22001_', sprintf('%03i', seq(1, 3)), 'E', sep='') #food stamp receipient 
 vars5 <- paste('C27001_', sprintf('%03i', seq(1, 21)), 'E', sep='') #health insurance coverage status
@@ -125,6 +125,19 @@ AllStateData <- AllStateData[, !duplicated(colnames(AllStateData))]
 
 JoinedDataFinal <- merge(AllStateData, Acc2) #merge Accident dataset with AllStateACS dataset 
 save(JoinedDataFinal, file="JoinedDataFinal.Rda")
+
+
+#################Pulling Counties Level Data
+
+http://api.census.gov/data/2015/acs1?get=NAME,B01001_015E&for=county:051&in=state:41&key=3dbabece4401ad72afa36a118e2cf777efa2afb3
+
+
+
+
+
+
+
+
 
 
 

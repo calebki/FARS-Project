@@ -43,7 +43,7 @@ data8 <- data7 %>% mutate(CountyFreq = ifelse(Freq < 1100, "LessCount", A_COUNTY
 check1 <- data8 %>%
   filter(Freq > 30) %>%
   select(A_COUNTY,Freq,CountyFreq)
-data8$CountyFreq <- as.factor(data8$CountyFreq)
+data8$CountyFreq <- as.factor(data8$CountyFreq) #since CountyFreq is actually counties 
 
 ##########Logistic Regression here 
 
@@ -73,23 +73,64 @@ data8$V_TRAV_SP <- factor(data8$V_TRAV_SP)
 data8$A_FATALS <- data8$A_FATALS[data8$A_FATALS!="FATALS"]
 data8$A_FATALS <- factor(data8$A_FATALS)
 
-data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
+data8$V_DR_DRINK <- data8$V_DR_DRINK[data8$V_DR_DRINK!="DR_DRINK"]
+data8$V_DR_DRINK <- factor(data8$V_DR_DRINK)
+
+data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
        Age = as.numeric(P_AGE),
        PDWI = as.numeric(V_PREV_DWI),
        PSuspension = as.numeric(V_PREV_SUS),
        PCrash = as.numeric(V_PREV_ACC),
        PSpeed = as.numeric(V_PREV_SPD))
 
-mylogit <- glm(V_DR_DRINK ~ CountyFreq + P_SEX + P_AGE + P_DRUGS + 
+mylogit <- glm(V_DR_DRINK ~ CountyFreq + P_SEX + Age + P_DRUGS + 
                  P_DOA + V_DEFORMED + TravSpeed + A_FATALS + PCrash + 
                  PSuspension + PDWI + PSpeed, 
                data = data8, family = "binomial")
 
 summary(mylogit)
 anova(mylogit)
-library(pscl)
-#McFadden R^2 index can be used to assess the fit of the logistic regression 
 
+########Build training and test models here
+n <- nrow(data8)
+shuffled <- data8[sample(n),]
+train <- shuffled[1:round(0.7 * n),]
+test <- shuffled[(round(0.7 * n) + 1):n,]
+
+model <- glm(V_DR_DRINK ~ CountyFreq + P_SEX + Age + P_DRUGS + 
+               P_DOA + V_DEFORMED + TravSpeed + A_FATALS + PCrash + 
+               PSuspension + PDWI + PSpeed, family=binomial(link='logit'),data=train)
+
+fitted.results <- predict(model,newdata=test,type='response') #outputs probabilities 
+fitted.results <- ifelse(fitted.results > 0.5,1,0) #if the prob is greater than 0.5, assign it to be 1
+misClasificError <- mean(fitted.results != test$V_DR_DRINK) #misclassification is when results not equal 
+print(paste('Accuracy',1-misClasificError)) #about 83% accuracy 
+#Use cross-validation to find errors 
+
+library(ROCR)
+p <- predict(model, newdata=test,type="response")
+pr <- prediction(p, test$V_DR_DRINK)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc #auc is 0.74
+
+#########Importance plot here 
+
+
+
+
+
+
+
+
+
+
+
+
+#McFadden R^2 index can be used to assess the fit of the logistic regression 
 ##########MACHINE LEARNING HERE: 
 control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 model <- train(P_DOA~., data=small, method="lvq", preProcess="scale", trControl=control)
