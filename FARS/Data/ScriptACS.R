@@ -40,7 +40,7 @@ getCensusApi <- function(data_url,vars,region,key,numeric=TRUE){
     data <- data[,c(which(sapply(data, class)!='numeric'), which(sapply(data, class)=='numeric'))]
     return(data)
   }else{
-    print('unable to create single data.frame in getCensusApi')
+    #print('unable to create single data.frame in getCensusApi')
     return(data)
   }
 }
@@ -58,7 +58,7 @@ getCensusApi2 <- function(data_url,get,region,key,numeric=TRUE){
   dat_raw <- try(readLines(api_call, warn="F"))
   #print(dat_raw)
   if(class(dat_raw)=='try-error') {
-    print(api_call)
+    #print(api_call)
     return}
   dat_df <- data.frame()
   tmp <- strsplit(gsub("[^[:alnum:], _]", '', dat_raw), "\\,")
@@ -122,40 +122,10 @@ Accident %>%
   dplyr::select(A_COUNTY,A_STATE) %>%
   head(50)
 
-###########creating tables for extracting county level data 
-CList = paste(States, County, sep="_") #concatenate States and Counties together
-CList <- CList[1:20]
-df11 <- NULL
-for (cty in CList){
-  #print(cty)
-  split <- strsplit(cty,'_',fixed=TRUE)
-  state <- split[[1]][1]
-  county <- split[[1]][2]
-  region = paste("for=county:",county,"&in=state:",state,sep = '')
-  temp.df <- getCensusApi(sf1_2010_api, vars=vars10, region=region, key=key)
-  #print(temp.df)
-  df11 <- rbind(df11, temp.df)
-}
 
 
-
-
-
-
-name <- strsplit(CList1,'_',fixed=TRUE)
-name[[1]][1]
-name[[1]][2]
-# Create an empty data.frame to hold the results in:
-df11 <- NULL
-for(cty in St){
-  print(cty)
-  region = paste("for=county:",county,"&in=state:",state,sep = '')
-  # Pull data
-  temp.df <- getCensusApi(sf1_2010_api, vars=vars11, region=region, key=key)
-  df11 <- rbind(df11, temp.df)
-}
-
-save(df11, file="Race.Rda")
+s1 <- df1
+save(s1, file="PopBySexByAgeCOUNTY.Rda")
 
 AllStateData <- cbind(df1,df2,df3,df5,df6,df7,df8,df10,df11)
 save(AllStateData, file="AllStatesData.Rda")
@@ -185,25 +155,26 @@ data <- acs.fetch(geography=psrc, table.name="B17001",
 data2 <- as.data.frame((estimate(data))) #function to extract just the estimates 
 
 
-df12 <- NULL
+CList = paste(States, County, sep="_") #concatenate States and Counties together
+df5 <- NULL
 for (cty in CList){
+  #print(cty)
   split <- strsplit(cty,'_',fixed=TRUE)
   state <- split[[1]][1]
   county <- split[[1]][2]
-  psrc=geo.make(state=state, county=county)
-  data1 <- acs.fetch(geography=psrc, table.name="B17001",
-            endyear=2015, col.names="pretty")
-  data2 <- as.data.frame((estimate(data)))
-  df12 <- rbind(df12, data2)
+  region = paste("for=county:",county,"&in=state:",state,sep = '')
+  temp.df <- getCensusApi(sf1_2010_api, vars=vars10, region=region, key=key)
+  #print(temp.df)
+  df5 <- rbind(df5, temp.df)
 }
 
+s4 <- df5
 
+#s3 <- df2
+save(s4, file = "TotalPopulation.Rda")
 
-
-
-
-
-
+#choose vars 10 last for analysis 
+##Which variables are most useful and cant join extra data due to vector memory size?
 
 
 
