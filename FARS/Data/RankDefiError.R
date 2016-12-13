@@ -23,7 +23,7 @@ small <- filter
 
 countiesL <- tally(small$A_COUNTY)
 data4 <- data.frame(countiesL)
-data6 <- rename(data5, c("X" = "A_COUNTY"))
+data6 <- rename(data4, c("X" = "A_COUNTY"))
 data7 <- merge(data6, small) #merge the frequencies of the counties 
 data7 <- unique(data7) #unique observations include 48577 total 
 
@@ -33,7 +33,7 @@ data7$A_COUNTY<- as.character(data7$A_COUNTY)
 data8 <- data7 %>%
   filter(Freq > 10)
 data8$A_COUNTY <- as.factor(data8$A_COUNTY)
-nrow(data8) #48346 observations: works 
+nrow(data8) #48169 observations 
 
 
 data8$P_SEX = as.factor(data8$P_SEX)
