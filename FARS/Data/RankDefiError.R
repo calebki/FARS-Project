@@ -58,16 +58,24 @@ data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
 data9 <- data8
 
 food <- load("FoodStampCounties.Rda")
+s2$StateCounty <- with(s2, paste(state,county, sep="-"))
 pop <- load("TotalPopulation.Rda")
+s4$StateCounty <- with(s4, paste(state,county, sep="-"))
 pov <- load("PovIncomeRatioCounties.Rda")
+s3$StateCounty <- with(s3, paste(state,county, sep="-"))
 data9 <- unique(data9) #819 observations so county level data pulled only for these counties 
 foodACS <- unique(s2)
+foodACS1 <- foodACS %>% dplyr::select(C22001_001E, C22001_002E, C22001_003E, StateCounty)
 PovACS <- unique(s3)
+PovACS1 <- PovACS %>% dplyr::select(C17002_001E, StateCounty)
 PopACS <- unique(s4)
-merge1 <- merge(foodACS, PovACS)
-mergeACS<- merge(merge1, PopACS)
+PopACS1 <- PopACS %>% dplyr::select(B01003_001E, StateCounty)
+merge1 <- merge(foodACS1, PovACS1)
+mergeACS<- merge(merge1, PopACS1)
 
-mergeACS$county <- as.factor(mergeACS$county)
+mergeACS$StateCounty <- as.factor(mergeACS$StateCounty)
+data9$StateCounty <- with(data9, paste(state,county, sep="-"))
+
 FinalMerge <- merge(mergeACS, data9) #9614 observations 
 
 ########Build training and test models here
