@@ -58,25 +58,40 @@ data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
 data9 <- data8
 
 food <- load("FoodStampCounties.Rda")
-s2$StateCounty <- with(s2, paste(state,county, sep="-"))
+s2$state <- as.numeric(s2$state)
+s2$county <- as.numeric(s2$county)
+s21 <- s2 %>% mutate(StateCounty = ((1000*state) + county))
+
+
 pop <- load("TotalPopulation.Rda")
-s4$StateCounty <- with(s4, paste(state,county, sep="-"))
+s4$state <- as.numeric(s4$state)
+s4$county <- as.numeric(s4$county)
+s41 <- s4 %>% mutate(StateCounty = ((1000*state) + county))
+
 pov <- load("PovIncomeRatioCounties.Rda")
-s3$StateCounty <- with(s3, paste(state,county, sep="-"))
+s3$state <- as.numeric(s3$state)
+s3$county <- as.numeric(s3$county)
+s31 <- s3 %>% mutate(StateCounty = ((1000*state) + county))
+
+
 data9 <- unique(data9) #819 observations so county level data pulled only for these counties 
-foodACS <- unique(s2)
+foodACS <- unique(s21)
 foodACS1 <- foodACS %>% dplyr::select(C22001_001E, C22001_002E, C22001_003E, StateCounty)
-PovACS <- unique(s3)
+
+PovACS <- unique(s31)
 PovACS1 <- PovACS %>% dplyr::select(C17002_001E, StateCounty)
-PopACS <- unique(s4)
+
+PopACS <- unique(s41)
 PopACS1 <- PopACS %>% dplyr::select(B01003_001E, StateCounty)
+
 merge1 <- merge(foodACS1, PovACS1)
 mergeACS<- merge(merge1, PopACS1)
 
-mergeACS$StateCounty <- as.factor(mergeACS$StateCounty)
-data9$StateCounty <- with(data9, paste(state,county, sep="-"))
+data9$state <- as.numeric(data9$state)
+data9$county <- as.numeric(data9$county)
+data91 <- data9 %>% mutate(StateCounty = ((1000*state) + county))
 
-FinalMerge <- merge(mergeACS, data9) #9614 observations 
+FinalMerge <- merge(mergeACS, data91)
 
 ########Build training and test models here
 mergeData <- FinalMerge
@@ -84,7 +99,6 @@ n <- nrow(mergeData)
 shuffled <- mergeData[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
-
 
 #Account for correlation structure induced by the same county 
 train$V_DR_DRINK <- as.numeric(train$V_DR_DRINK)
