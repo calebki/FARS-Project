@@ -18,7 +18,7 @@ small <- data %>% dplyr::select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V
                                 P_AIR_BAG, P_EJECTION, P_EJ_PATH, P_DRINKING, P_DRUGS, 
                                 P_LAG_HRS, P_DOA, A_COUNTY, A_STATE, A_CITY)
 
-filter <- unique(small) #now 48577 observations after filtering (originally were 48613 observations)
+filter <- unique(small) 
 small <- filter
 
 countiesL <- tally(small$A_COUNTY)
@@ -59,7 +59,7 @@ data9 <- data8
 food <- load("FoodStampCounties.Rda")
 pop <- load("TotalPopulation.Rda")
 pov <- load("PovIncomeRatioCounties.Rda")
-data9 <- unique(data9)
+data9 <- unique(data9) #819 observations so county level data pulled only for these counties 
 foodACS <- unique(s2)
 PovACS <- unique(s3)
 PopACS <- unique(s4)
@@ -67,7 +67,6 @@ merge1 <- merge(foodACS, PovACS)
 mergeACS<- merge(merge1, PopACS)
 
 mergeACS$county <- as.factor(mergeACS$county)
-#merge makes sense since just retaining information for the 810 counties with pulled data 
 FinalMerge <- merge(mergeACS, data9) #9614 observations 
 
 ########Build training and test models here
