@@ -1,0 +1,39 @@
+---
+title: "Think of a good title"
+author: "Azka Javaid & Caleb Ki"
+date: "December 15, 2016"
+output:
+  beamer_presentation:
+    fonttheme: structurebold
+    theme: Berlin
+---
+
+```{r message=FALSE, echo=FALSE}
+require(mdsr)
+options(digits=3)
+trellis.par.set(theme=theme.mosaic())
+```
+
+# Motivation
+- Car crash occurs with only one car involved
+- The car hit a tree
+- What is the likelihood that the driver involved was drunk?
+- What factors are good predictors for predicting a driver in an accident
+
+# Background
+- Every year over 30000 people die in motor vehicle accidents
+- Alcohol-impaired driving crashes account for around 30% of these deaths
+- The cost of alcohol-related crashes generally exceeds the cost of non-alcohol related crashes
+
+# Data Description
+- Primary data comes from the National Highway Traffic Safety Administration (NHTSA) through the Fatality Analysis Reporting System (FARS)
+    - Datasets containing information about the vehicle, accident, and people involved
+- Supplementary data comes from the U.S. Census Bureau through the American Community Survey (ACS)
+    - Provides economic, social, and demographic data at county and state levels
+
+# Data Visualization
+- Shiny
+- Leaflet
+- Choroplethr
+
+
