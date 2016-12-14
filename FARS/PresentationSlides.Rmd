@@ -1,0 +1,80 @@
+---
+title: "Predicting Drunk Driving"
+author: "Azka Javaid & Caleb Ki"
+date: "December 15, 2016"
+output:
+  beamer_presentation:
+    fonttheme: structurebold
+    theme: Berlin
+---
+
+```{r message=FALSE, echo=FALSE}
+require(mosaic)
+library(mosaicData)
+library(quantreg)
+options(digits=3)
+trellis.par.set(theme=theme.mosaic())
+```
+
+# Motivation
+- Freemont County, Wyoming had 27 traffic accidents per 100,000 people 
+- Morris County, New Jersey has about 0.2 traffic accidents per 100,000 people
+- What accounts for the disparity in these traffic fatalities?
+
+# Background 
+- Over 30000 people die in motor vehicle accidents every year 
+- Alcohol-impaired driving incidents account for about 30% of these deaths
+- Cost of alcohol-related crashes generally exceeds the cost of non-alcohol related crashes
+
+# Question 
+- What factors contribute to drunk driving at an individual and socioeconomic county-level?
+
+# Data Description
+- Primary data comes from the National Highway Traffic Safety Administration (NHTSA) through the Fatality Analysis Reporting System (FARS)
+    - Datasets containing information about the vehicle, accident, and people involved
+- Supplementary data comes from the U.S. Census Bureau through the American Community Survey (ACS)
+    - Provides economic, social, and demographic data at county and state levels
+
+    
+# Google BigQuery 
+
+- Cloud base serverless analytics data warehouse 
+- Platform for performing SQL analysis 
+- Designed to process GB/PB scale data 
+- Data reading and writing available via Hadoop, Spark and Cloud Dataflow
+- Data ingestion abilities available from Google Cloud Storage, Google 
+  Cloud Datastore or livestream 
+- Facilitates collaboration in an infrastructure-less environment 
+
+
+# Data Visualization
+- Shiny
+- Leaflet
+- Choroplethr
+
+
+# Variable Description 
+
+- Attributes characterized by:
+    - Driver: Indicator for drunk driving, Sex, Age, Driver history (past suspensions, DWI and speeding convictions), Indicator for death at scene of accident/en route to a medical facility 
+    - Vehicle: Vehicle speed prior to crash, Extent of damage
+    - Accident: Number of fatalities
+    - County-level attributes: Total population, Population by sex, 12-month income to poverty level ratio, Health 
+      insurance coverage by sex
+
+# Logistic Regression 
+
+
+# Random Forest 
+
+
+# Conclusions 
+
+
+# Future work 
+
+- Extend the study to state level and factor in additional years 
+- Predict whether drunk driving was involved at an accident level 
+- Analyze whether time of day and weekday/weekend status affects drunk driving incidence
+
+
