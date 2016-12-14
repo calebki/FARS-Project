@@ -10,7 +10,9 @@
 library(shiny)
 library(mdsr)
 library(leaflet)
+library(choroplethrMaps)
 
+data("state.regions")
 accidents <- read.csv("~/git/STAT495-Group3/FARS/Maps/mapsaccident.csv")
 
 vars <- c(
@@ -39,12 +41,21 @@ vars5 <- c(
   "Only Drinking Involved Accidents" = "drink"
 )
 
+vars6 <- c(
+  "All" = "all",  
+  "Weekend" = "weekend",
+  "Weekday" = "weekday"
+)
+
+vars7 <- c(
+  "All" = "all",
+  "Night" = "night",
+  "Day" = "day"
+)
+
 shinyUI(navbarPage("FARS", id = "nav",
   
   tabPanel("Marker Map",
-  # Application title
-    titlePanel("Interactive Map"),
-  
     sidebarLayout(
       sidebarPanel(
         sliderInput(inputId = "size", label = "Number of Accidents", min = 0, max = nrow(accidents) - 1, value = 10000),
@@ -55,24 +66,36 @@ shinyUI(navbarPage("FARS", id = "nav",
       ),
     
       mainPanel(  
+        titlePanel("Interactive Map"),
+        
         leafletOutput("markermap")
       )
     )
   ),
   
   tabPanel("Choropleth Map",
+      
+    sidebarLayout(
+      sidebarPanel(
+        radioButtons(inputId = "state_or_county", NULL, vars3),
     
-    radioButtons(inputId = "state_or_county", NULL, vars3),
+        radioButtons(inputId = "raw_or_normal", NULL, vars4),
     
-    radioButtons(inputId = "raw_or_normal", NULL, vars4),
+        radioButtons(inputId = "drink_or_total", NULL, vars5),
     
-    radioButtons(inputId = "drink_or_total", NULL, vars5),
+        radioButtons(inputId = "weekend_or_not", NULL, vars6),
     
-    titlePanel("Choropleth Map"),
-    
-    plotOutput("cmap")
-    
+        radioButtons(inputId = "night_or_day", NULL, vars7),
+        
+        selectInput(inputId = "zoom", "Zoom", c("No zoom", state.regions$region))
+      ),
+      
+      mainPanel(
+        titlePanel("Choropleth Map"),
+        
+        plotOutput("cmap")
+      )
+    )
   ),
-  
   tabPanel("Data Exploration")
 ))

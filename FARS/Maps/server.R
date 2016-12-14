@@ -133,12 +133,50 @@ shinyServer(function(input, output) {
     input$drink_or_total
   })
   
+  wknd <- reactive({
+    input$weekend_or_not
+  })
+  
+  night <- reactive({
+    input$night_or_day
+  })
+  
+  statezoom <- reactive({
+    input$zoom
+  })
+    
   output$cmap <- renderPlot({
     
     temp <- accidents
     
     if(alcohol() == "drink") {
       temp <- temp %>% filter(DRUNK_DR >= 1)
+    }
+    
+    if(wknd() == "weekend") {
+      temp <- temp %>% filter(DAY_WEEK == 7 | DAY_WEEK == 1)
+    }
+    
+    else if(wknd() == "weekday") {
+      temp <- temp %>% filter(DAY_WEEK > 1 & DAY_WEEK < 7)
+    }
+    
+    if(night() == "night") {
+      temp <- temp %>% filter(HOUR != 99) %>%
+        filter(HOUR >= 18 | HOUR < 6)
+    }
+    
+    else if(night() == "day") {
+      temp <- temp %>% filter(HOUR != 99) %>%
+        filter(HOUR >= 6 & Hour < 18)
+    }
+    
+    if(statezoom() == "No zoom") {
+      z <- NULL
+    }
+    
+    else{
+      z <- statezoom()
     }
     
     if(maptype() == "county") {
@@ -149,7 +187,7 @@ shinyServer(function(input, output) {
         numAccidents <- numAccidents %>% left_join(countypop, by = "region") %>%
           mutate(value = value / (population/100000))
       }
-      county_choropleth(numAccidents)
+      county_choropleth(numAccidents, state_zoom = z)
     }
     
     else {
@@ -168,7 +206,7 @@ shinyServer(function(input, output) {
           mutate(value = value / (Population/100000))
       }
       
-      state_choropleth(numAccidents)
+      state_choropleth(numAccidents, state_zoom = z)
     }
 
   })
