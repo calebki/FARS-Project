@@ -15,8 +15,8 @@ accidents <- read.csv("~/git/STAT495-Group3/FARS/Maps/mapsaccident.csv")
 
 vars <- c(
   "Drunk driving?" = "DRUNK_DR",
-  "Day of the week" = "DAY_WEEK",
-  "Month" = "MONTH"
+  "Weekend?" = "DAY_WEEK",
+  "Night or Day?" = "TIME"
 )
 
 vars2 <- c(

@@ -14,6 +14,26 @@ library(shiny)
 library(leaflet)
 library(RColorBrewer)
 library(scales)
+library(tidyr)
+
+data("fips.state")
+data("fips.county")
+mygeo <- geo.make(state = "*", county = "*")
+x <- acs.fetch(endyear=2015, geography = mygeo, 
+               table.number = "B01003", 
+               key = "17b6e09794a8f4a42664535f0e519179cc06f5a7")
+countypop <- as.data.frame(estimate(x))
+counties <- rownames(countypop)
+rownames(countypop) <- NULL
+countypop$COUNTY <- counties
+names(countypop) <- c("population", "COUNTY")
+countypop <- countypop %>% 
+  separate(COUNTY, c("COUNTY", "STATE_NAME"), sep = ", ") %>%
+  left_join(fips.state, by = "STATE_NAME") %>%
+  select(population, County.Name = COUNTY, STATE_NAME, State = STUSAB) %>%
+  left_join(fips.county, by = c("County.Name", "State")) %>%
+  mutate(region = State.ANSI * 1000 + County.ANSI) %>%
+  filter(State != "PR")
 
 data(state.map)
 load("~/git/STAT495-Group3/FARS/Data/StatesLevelACSData/TotalPopulation.Rda")
@@ -27,13 +47,13 @@ accidents <- head(accidents, nrow(accidents)-1) %>%
          LONGITUD = readr::parse_number(LONGITUD), LATITUDE = readr::parse_number(LATITUDE),
          FATALS = readr::parse_number(FATALS), PERSONS = readr::parse_number(PERSONS),
          DRUNK_DR = readr::parse_number(DRUNK_DR), DAY_WEEK = readr::parse_number(DAY_WEEK),
-         MONTH = readr::parse_number(MONTH), ROUTE = readr::parse_number(ROUTE))
+         MONTH = readr::parse_number(MONTH), ROUTE = readr::parse_number(ROUTE),
+         HOUR = readr::parse_number(HOUR))
 
 addzero <- function(a) {
   return(ifelse(a < 10, paste(c("0",a), collapse = ""), a))
 }
 
-# Define server logic required to draw a histogram
 shinyServer(function(input, output) {
     
   sampleData <- reactive({
@@ -52,48 +72,50 @@ shinyServer(function(input, output) {
     sizeBy <- input$pointsize
     
     if (colorBy == "DRUNK_DR") {
-      colorData <- ifelse(sampleData()$DRUNK_DR >= 1, "yes", "no")
-      pal <- colorFactor("Set3", colorData)
+      colorData <- ifelse(sampleData()$DRUNK_DR >= 1, "Yes", "No")
+      lab <- "Drunk Driving?"
     } 
     
-    else {
-      colorData <- accidents[[colorBy]]
-      pal <- colorFactor("Set3", colorData)
+    else if(colorBy == "DAY_WEEK") {
+      colorData <- ifelse(sampleData()$DAY_WEEK == 7 | sampleData()$DAY_WEEK == 1, "Yes", "No")
+      lab <- "Weekend?"
     }
     
-    radius <- accidents[[sizeBy]] / max(accidents[[sizeBy]]) * 100000
+    else {
+      colorData <- ifelse(sampleData()$HOUR > 23, "Unknown", 
+                          ifelse(sampleData()$HOUR >= 18 | sampleData()$HOUR < 6, "Night", "Day"))
+      lab <- "Night or Day?"
+    }
+    
+    pal <- colorFactor("Set3", colorData)
+    radius <- sampleData()[[sizeBy]] / max(sampleData()[[sizeBy]]) * 100000
     
     leafletProxy("markermap", data = sampleData()) %>%
       clearShapes() %>%
-      addCircles(lng = ~LONGITUD, lat = ~LATITUDE, radius = radius,
+      addCircles(lng = ~LONGITUD, lat = ~LATITUDE, radius = radius, layerId = ~ST_CASE,
                  stroke=FALSE, fillColor=pal(colorData)) %>%
-      addLegend("bottomleft", pal=pal, values=colorData, title=colorBy,
+      addLegend("bottomleft", pal=pal, values=colorData, title=lab,
                 layerId="colorLegend")
     
   })
   
-  # Show a popup at the given location
-  showPopup <- function(id, lat, lng) {
-    selected <- accidents[accidents$ST_CASE == id,]
-    content <- as.character(tagList(
-      tags$h4("Crash ID:", as.integer(selected$ST_CASE)),
-      tags$br(),
-      sprintf("Drunk driving involved?: %s", ifelse(selected$DRUNK_DR == 1, "Yes", "No")), tags$br(),
-      sprintf("Number of people involved: %s%%", as.integer(selected$PERSONS)), tags$br(),
-      sprintf("Number of fatalities: %s", as.integer(selected$FATALS))
-    ))
-    leafletProxy("markermap", data = sampleData()) %>% addPopups(lng, lat, content, layerId = ST_CASE)
-  }
-  
   # When map is clicked, show a popup with city info
   observe({
-    leafletProxy("markermap", data = sampleData()) %>% clearPopups()
-    event <- input$map_shape_click
+    leafletProxy("markermap") %>% clearPopups()
+    event <- input$markermap_shape_click
     if (is.null(event))
       return()
-    
+    print(event)
     isolate({
-      showPopup(event$ST_CASE, event$LATITUDE, event$LONGITUD)
+      selected <- sampleData()[sampleData()$ST_CASE == event$id,]
+      content <- as.character(tagList(
+        tags$h4("Crash ID:", as.integer(selected$ST_CASE)),
+        tags$br(),
+        sprintf("Drunk driving involved?: %s", ifelse(selected$DRUNK_DR == 1, "Yes", "No")), tags$br(),
+        sprintf("Number of people involved: %s", as.integer(selected$PERSONS)), tags$br(),
+        sprintf("Number of fatalities: %s", as.integer(selected$FATALS))
+      ))
+      leafletProxy("markermap") %>% addPopups(selected$LONGITUD, selected$LATITUDE, content, layerId = selected$ST_CASE)
     })
   })
   
@@ -122,6 +144,11 @@ shinyServer(function(input, output) {
     if(maptype() == "county") {
       temp <- temp %>% mutate(region = STATE * 1000 + COUNTY)
       numAccidents <- temp %>% group_by(region) %>% summarize(value = n())
+      
+      if(counttype() == "normal") {
+        numAccidents <- numAccidents %>% left_join(countypop, by = "region") %>%
+          mutate(value = value / (population/100000))
+      }
       county_choropleth(numAccidents)
     }
     
