@@ -64,22 +64,45 @@ data91 <- data9 %>% mutate(StateCounty = ((1000*state) + county))
 
 ACS <- load("dfTotData.csv")
 data91 <- rename(data91, c("StateCounty" = "FIPSCode"))
-FinalMerge2<- data91 %>% left_join(dfTotData, by = "FIPSCode")
+FinalMerge2<- dfTotData %>% right_join(data91, by = "FIPSCode")
 
 ########Build training and test models here
-mergeData <- FinalMerge
+FinalMerge2<- rename(FinalMerge2, c("B27001_001" = "HealthInsuCovTotal"))
+FinalMerge2<- rename(FinalMerge2, c("B27001_002" = "HealthInsuCovMale"))
+FinalMerge2<- rename(FinalMerge2, c("B27001_030" = "HealthInsuCovFemale"))
+FinalMerge2<- rename(FinalMerge2, c("C17002_001" = "IncomeToPovRatio"))
+FinalMerge2<- rename(FinalMerge2, c("B01001_002" = "TotalMale"))
+FinalMerge2<- rename(FinalMerge2, c("B01001_026" = "TotalFemale"))
+FinalMerge2<- rename(FinalMerge2, c("B01003_001" = "TotalPopulation"))
+
+mergeData <- FinalMerge2
+mergeData$county <- as.factor(mergeData$county)
 n <- nrow(mergeData)
 shuffled <- mergeData[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
-class(train$C17002_001E)
-train$county <- as.factor(train$county)
+train$FIPSCode <- as.factor(train$FIPSCode)
+logmod <- glm(formula = V_DR_DRINK ~ P_SEX + Age + FIPSCode + P_DRUGS + TravSpeed + P_DOA + 
+                V_DEFORMED + A_FATALS + PSuspension + PCrash + PDWI + PSpeed + PCrash + HealthInsuCovTotal + 
+                IncomeToPovRatio + TotalMale + TotalFemale + TotalPopulation, 
+              family=binomial(link='logit'), data = train)
 
-logmod <- glm(formula = V_DR_DRINK ~ P_SEX + Age + county + P_DRUGS + TravSpeed + P_DOA + 
-                A_FATALS + PSuspension + PCrash + PDWI + PSpeed + PCrash + C22001_001E + 
-              C22001_002E + C22001_003E + C17002_001E + B01003_001E, 
-              family=binomial(link='logit'), maxit = 500, data = train)
+summary(logmod)
 
-county <- data(fips.county)
 
+
+require(randomForest)
+mergeData$V_DR_DRINK <- as.numeric(mergeData$V_DR_DRINK)
+treemod <- randomForest(V_DR_DRINK ~ P_SEX + Age + FIPSCode + P_DRUGS + TravSpeed + P_DOA + 
+  V_DEFORMED + A_FATALS + PSuspension + PCrash + PDWI + PSpeed + PCrash + B27001_001 + 
+  B27001_002 + B27001_030 + C17002_001 + B01001_002 + B01001_026, data = mergeData, ntree = 50, mtry = 3, 
+  keep.forest = FALSE, importance = TRUE)
+
+
+library(pscl)
+pR2(logmod)
+
+#pred <- predict(logmod, test, type = "response")
+#conf <- table(test$label, pred) #building confusion matrix 
+#print(sum(diag(conf)) / sum(conf)) #63% model accuracy 
