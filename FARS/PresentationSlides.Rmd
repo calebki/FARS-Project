@@ -17,8 +17,8 @@ trellis.par.set(theme=theme.mosaic())
 ```
 
 # Motivation
-- Freemont County, Wyoming had 27 traffic accidents per 100,000 people 
-- Morris County, New Jersey has about 0.2 traffic accidents per 100,000 people
+- Fremont County, Wyoming had 27 fatal traffic accidents involving alcohol per 100,000 people 
+- Morris County, New Jersey had 0.2 fatal traffic accidents involving alcohol per 100,000 people
 - What accounts for the disparity in these traffic fatalities?
 
 # Background 
@@ -34,7 +34,7 @@ trellis.par.set(theme=theme.mosaic())
     - Datasets containing information about the vehicle, accident, and people involved
 - Supplementary data comes from the U.S. Census Bureau through the American Community Survey (ACS)
     - Provides economic, social, and demographic data at county and state levels
-
+    
     
 # Google BigQuery 
 
