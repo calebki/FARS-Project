@@ -57,41 +57,14 @@ data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
 
 data9 <- data8
 
-food <- load("FoodStampCounties.Rda")
-s2$state <- as.numeric(s2$state)
-s2$county <- as.numeric(s2$county)
-s21 <- s2 %>% mutate(StateCounty = ((1000*state) + county))
-
-
-pop <- load("TotalPopulation.Rda")
-s4$state <- as.numeric(s4$state)
-s4$county <- as.numeric(s4$county)
-s41 <- s4 %>% mutate(StateCounty = ((1000*state) + county))
-
-pov <- load("PovIncomeRatioCounties.Rda")
-s3$state <- as.numeric(s3$state)
-s3$county <- as.numeric(s3$county)
-s31 <- s3 %>% mutate(StateCounty = ((1000*state) + county))
-
-
 data9 <- unique(data9) #819 observations so county level data pulled only for these counties 
-foodACS <- unique(s21)
-foodACS1 <- foodACS %>% dplyr::select(C22001_001E, C22001_002E, C22001_003E, StateCounty)
-
-PovACS <- unique(s31)
-PovACS1 <- PovACS %>% dplyr::select(C17002_001E, StateCounty)
-
-PopACS <- unique(s41)
-PopACS1 <- PopACS %>% dplyr::select(B01003_001E, StateCounty)
-
-merge1 <- merge(foodACS1, PovACS1)
-mergeACS<- merge(merge1, PopACS1)
-
 data9$state <- as.numeric(data9$state)
 data9$county <- as.numeric(data9$county)
 data91 <- data9 %>% mutate(StateCounty = ((1000*state) + county))
 
-FinalMerge <- merge(mergeACS, data91)
+ACS <- load("dfTotData.csv")
+data91 <- rename(data91, c("StateCounty" = "FIPSCode"))
+FinalMerge2<- data91 %>% left_join(dfTotData, by = "FIPSCode")
 
 ########Build training and test models here
 mergeData <- FinalMerge
@@ -100,10 +73,13 @@ shuffled <- mergeData[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
-#Account for correlation structure induced by the same county 
-train$V_DR_DRINK <- as.numeric(train$V_DR_DRINK)
-GEEmod <- summary(gee(formula = V_DR_DRINK ~ county + P_SEX + Age + P_DRUGS + 
-                        P_DOA + V_DEFORMED + TravSpeed + A_FATALS + PCrash + 
-                        PSuspension + PDWI + PSpeed + C17002_001E + 
-                        C22001_001E + C22001_002E + C22001_003E, B01003_001E, id = (county), 
-                      data = train, corstr = "independence"))
+class(train$C17002_001E)
+train$county <- as.factor(train$county)
+
+logmod <- glm(formula = V_DR_DRINK ~ P_SEX + Age + county + P_DRUGS + TravSpeed + P_DOA + 
+                A_FATALS + PSuspension + PCrash + PDWI + PSpeed + PCrash + C22001_001E + 
+              C22001_002E + C22001_003E + C17002_001E + B01003_001E, 
+              family=binomial(link='logit'), maxit = 500, data = train)
+
+county <- data(fips.county)
+
