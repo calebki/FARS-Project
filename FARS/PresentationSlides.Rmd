@@ -15,6 +15,7 @@ library(mosaicData)
 library(quantreg)
 library(xtable)
 library(ROCR)
+library(pROC)
 require(randomForest)
 options(digits=3)
 trellis.par.set(theme=theme.mosaic())
@@ -70,9 +71,30 @@ trellis.par.set(theme=theme.mosaic())
 
 ![Logistic](LogisticOutputFars3.png)
 
-# Assessing Logistic Regression 
+# Random Forest 
 
 ```{r echo=FALSE, fig.align="center"}
+load("FinalLogisticData.Rda")
+mergeData$county <- as.factor(mergeData$county)
+n <- nrow(mergeData)
+shuffled <- mergeData[sample(n), ]
+train <- shuffled[1:round(0.7 * n),]
+test <- shuffled[(round(0.7 * n) + 1):n,]
+
+train$FIPSCode <- as.factor(train$FIPSCode)
+set.seed(1000)
+VariableImportance <- randomForest(as.factor(DriverDrinking) ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus +
+                                     NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding + IncomeToPovRatio + TotalPopulation + 
+                                     WeekdayStatus + DayStatus, data = train, ntree = 50, mtry = 4, keep.forest = FALSE, importance = TRUE)
+
+varImpPlot(VariableImportance)
+```
+
+
+# Model Assessment
+
+```{r echo=FALSE, fig.align="center", fig.height=5.5}
+par(mfrow=c(1,2))
 load("FinalLogisticData.Rda")
 mergeData$county <- as.factor(mergeData$county)
 n <- nrow(mergeData)
@@ -91,38 +113,17 @@ prob <- predict(logmod, newdata=test, type="response")
 pred <- prediction(prob, test$DriverDrinking)
 perf <- performance(pred, measure = "tpr", x.measure = "fpr")
 plot(perf)
-```
-
-
-# Random Forest 
-
-```{r echo=FALSE, fig.align="center"}
-load("FinalLogisticData.Rda")
-mergeData$county <- as.factor(mergeData$county)
-n <- nrow(mergeData)
-shuffled <- mergeData[sample(n), ]
-train <- shuffled[1:round(0.7 * n),]
-test <- shuffled[(round(0.7 * n) + 1):n,]
-
-train$FIPSCode <- as.factor(train$FIPSCode)
-train$DriverDrinking <- as.factor(train$DriverDrinking)
-logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
-                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
-              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
-              family=binomial(link='logit'), data = train)
-
-#print(xtable(summary(logmod), caption = 'Logistic Regression Summary'))
-test$DriverDrinking <- as.numeric(test$DriverDrinking)
-fitted.results <- predict(logmod,newdata=test,type='response')
-fitted.results <- ifelse(fitted.results > 0.5,2,1)
-misClasificError <- mean(fitted.results != test$DriverDrinking)
-#print(paste('Accuracy',1-misClasificError)) #70% accuracy
+title(main="Logistic Regression ROC [Accuracy: 0.67]") 
 
 set.seed(1000)
-VariableImportance <- randomForest(as.factor(DriverDrinking) ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus +
-                VehicleDeformed + NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
-              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus, data = train, ntree = 50, mtry =                                 4, keep.forest = FALSE, importance = TRUE)
-varImpPlot(VariableImportance)
+modForest <- randomForest(as.factor(DriverDrinking) ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus +  
+                                     NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding + IncomeToPovRatio + TotalPopulation + 
+                                     WeekdayStatus + DayStatus, data = train, ntree = 50, mtry = 4, keep.forest = TRUE, importance = TRUE)
+test.forest = predict(modForest, type = "prob", newdata = test)
+forestpred = prediction(test.forest[,2], test$DriverDrinking)
+forestperf = performance(forestpred, "tpr", "fpr")
+plot(perf, main="Random Forest ROC [Accuracy: 0.65]")
+#title("Receiver Operating Curve (ROC) [Accuracy: 0.65]")
 ```
 
 
