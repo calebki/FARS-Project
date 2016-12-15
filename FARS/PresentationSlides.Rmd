@@ -9,6 +9,7 @@ output:
 ---
 
 ```{r message=FALSE, echo=FALSE}
+options(warn = -1)
 require(mosaic)
 require(ggplot)
 library(mosaicData)
@@ -64,9 +65,8 @@ trellis.par.set(theme=theme.mosaic())
     - Driver: Indicator for drunk driving, Sex, Age, Driver history (past suspensions, DWI and speeding convictions), Indicator for death at scene of accident/en route to a medical facility 
     - Vehicle: Vehicle speed prior to crash, Extent of damage
     - Accident: Number of fatalities
-    - County-level attributes: Total population, Population by sex, 12-month income to poverty level ratio, Health 
-      insurance coverage by sex
-
+    - County-level attributes: Total population, 12-month income to poverty level ratio
+    
 # Logistic Regression 
 
 ![Logistic](FARSLogistic4.png)
