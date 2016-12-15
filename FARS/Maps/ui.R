@@ -58,7 +58,7 @@ shinyUI(navbarPage("FARS", id = "nav",
   tabPanel("Marker Map",
     sidebarLayout(
       sidebarPanel(
-        sliderInput(inputId = "size", label = "Number of Accidents", min = 0, max = nrow(accidents) - 1, value = 10000),
+        sliderInput(inputId = "size", label = "Number of Accidents", min = 0, max = nrow(accidents) - 1, value = nrow(accidents) - 1),
     
         selectInput(inputId = "color", "Color", vars),
     

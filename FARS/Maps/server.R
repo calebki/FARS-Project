@@ -48,7 +48,8 @@ accidents <- head(accidents, nrow(accidents)-1) %>%
          FATALS = readr::parse_number(FATALS), PERSONS = readr::parse_number(PERSONS),
          DRUNK_DR = readr::parse_number(DRUNK_DR), DAY_WEEK = readr::parse_number(DAY_WEEK),
          MONTH = readr::parse_number(MONTH), ROUTE = readr::parse_number(ROUTE),
-         HOUR = readr::parse_number(HOUR))
+         HOUR = readr::parse_number(HOUR), ST_CASE = readr::parse_number(ST_CASE),
+         VE_TOTA = readr::parse_number(VE_TOTA))
 
 addzero <- function(a) {
   return(ifelse(a < 10, paste(c("0",a), collapse = ""), a))
@@ -114,6 +115,7 @@ shinyServer(function(input, output) {
         tags$h4("Crash ID:", as.integer(selected$ST_CASE)),
         tags$br(),
         sprintf("Drunk driving involved?: %s", ifelse(selected$DRUNK_DR == 1, "Yes", "No")), tags$br(),
+        sprintf("Number of vehicles involved: %s", as.integer(selected$VE_TOTA)), tags$br(),
         sprintf("Number of people involved: %s", as.integer(selected$PERSONS)), tags$br(),
         sprintf("Number of fatalities: %s", as.integer(selected$FATALS))
       ))
@@ -170,7 +172,7 @@ shinyServer(function(input, output) {
     
     else if(night() == "day") {
       temp <- temp %>% filter(HOUR != 99) %>%
-        filter(HOUR >= 6 & Hour < 18)
+        filter(HOUR >= 6 & HOUR < 18)
     }
     
     if(statezoom() == "No zoom") {
@@ -208,7 +210,7 @@ shinyServer(function(input, output) {
           mutate(value = value / (Population/100000))
       }
       
-      state_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes")
+      state_choropleth(numAccidents, zoom = z, legend = "Number of Crashes")
     }
 
   })
