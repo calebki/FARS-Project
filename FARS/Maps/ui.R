@@ -77,15 +77,15 @@ shinyUI(navbarPage("FARS", id = "nav",
       
     sidebarLayout(
       sidebarPanel(
-        radioButtons(inputId = "state_or_county", NULL, vars3),
+        radioButtons(inputId = "state_or_county", "Map Type", vars3),
     
-        radioButtons(inputId = "raw_or_normal", NULL, vars4),
+        radioButtons(inputId = "raw_or_normal", "Counting Statistic", vars4),
     
-        radioButtons(inputId = "drink_or_total", NULL, vars5),
+        radioButtons(inputId = "drink_or_total", "Alcohol?", vars5),
     
-        radioButtons(inputId = "weekend_or_not", NULL, vars6),
+        radioButtons(inputId = "weekend_or_not", "Weekend?", vars6),
     
-        radioButtons(inputId = "night_or_day", NULL, vars7),
+        radioButtons(inputId = "night_or_day", "Time", vars7),
         
         selectInput(inputId = "zoom", "Zoom", c("No zoom", state.regions$region))
       ),
@@ -96,6 +96,5 @@ shinyUI(navbarPage("FARS", id = "nav",
         plotOutput("cmap")
       )
     )
-  ),
-  tabPanel("Data Exploration")
+  )
 ))
