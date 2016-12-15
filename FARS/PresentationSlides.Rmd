@@ -14,6 +14,7 @@ require(ggplot)
 library(mosaicData)
 library(quantreg)
 library(xtable)
+library(ROCR)
 require(randomForest)
 options(digits=3)
 trellis.par.set(theme=theme.mosaic())
@@ -67,7 +68,31 @@ trellis.par.set(theme=theme.mosaic())
 
 # Logistic Regression 
 
-![Logistic](LogisticOuputFARS2.png)
+![Logistic](LogisticOutputFars3.png)
+
+# Assessing Logistic Regression 
+
+```{r echo=FALSE, fig.align="center"}
+load("FinalLogisticData.Rda")
+mergeData$county <- as.factor(mergeData$county)
+n <- nrow(mergeData)
+shuffled <- mergeData[sample(n), ]
+train <- shuffled[1:round(0.7 * n),]
+test <- shuffled[(round(0.7 * n) + 1):n,]
+
+train$FIPSCode <- as.factor(train$FIPSCode)
+train$DriverDrinking <- as.factor(train$DriverDrinking)
+logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
+              family=binomial(link='logit'), data = train)
+
+prob <- predict(logmod, newdata=test, type="response")
+pred <- prediction(prob, test$DriverDrinking)
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf)
+```
+
 
 # Random Forest 
 
@@ -82,7 +107,7 @@ test <- shuffled[(round(0.7 * n) + 1):n,]
 train$FIPSCode <- as.factor(train$FIPSCode)
 train$DriverDrinking <- as.factor(train$DriverDrinking)
 logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
-                VehicleDeformed + NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
               + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
               family=binomial(link='logit'), data = train)
 
