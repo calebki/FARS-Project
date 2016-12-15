@@ -197,3 +197,5 @@ save(s4, file = "TotalPopulation.Rda")
 #C17022_001E to C17022_021M #Ratio of Income to Poverty Level of Families by Family Type
 #vars <- paste('B02003_', sprintf('%03i', seq(1, 49)), 'E', sep='')
 #us_places_ancestry <- getCensusApi(sf1_2010_api, vars=c("B01001_035E"), region="for=state:06",key=key)
+
+
