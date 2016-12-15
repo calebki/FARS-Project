@@ -10,6 +10,7 @@ output:
 
 ```{r message=FALSE, echo=FALSE}
 require(mosaic)
+require(ggplot)
 library(mosaicData)
 library(quantreg)
 library(xtable)
