@@ -74,20 +74,22 @@ shinyServer(function(input, output) {
     if (colorBy == "DRUNK_DR") {
       colorData <- ifelse(sampleData()$DRUNK_DR >= 1, "Yes", "No")
       lab <- "Drunk Driving?"
+      pal <- colorFactor("Set3", colorData)
     } 
     
     else if(colorBy == "DAY_WEEK") {
       colorData <- ifelse(sampleData()$DAY_WEEK == 7 | sampleData()$DAY_WEEK == 1, "Yes", "No")
       lab <- "Weekend?"
+      pal <- colorFactor("Set3", colorData)
     }
     
     else {
       colorData <- ifelse(sampleData()$HOUR > 23, "Unknown", 
                           ifelse(sampleData()$HOUR >= 18 | sampleData()$HOUR < 6, "Night", "Day"))
       lab <- "Night or Day?"
+      pal <- colorFactor("Dark2", colorData)
     }
     
-    pal <- colorFactor("Set3", colorData)
     radius <- sampleData()[[sizeBy]] / max(sampleData()[[sizeBy]]) * 100000
     
     leafletProxy("markermap", data = sampleData()) %>%
@@ -187,7 +189,7 @@ shinyServer(function(input, output) {
         numAccidents <- numAccidents %>% left_join(countypop, by = "region") %>%
           mutate(value = value / (population/100000))
       }
-      county_choropleth(numAccidents, state_zoom = z)
+      county_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes")
     }
     
     else {
@@ -206,7 +208,7 @@ shinyServer(function(input, output) {
           mutate(value = value / (Population/100000))
       }
       
-      state_choropleth(numAccidents, state_zoom = z)
+      state_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes")
     }
 
   })
