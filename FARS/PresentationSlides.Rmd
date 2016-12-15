@@ -12,6 +12,7 @@ output:
 require(mosaic)
 library(mosaicData)
 library(quantreg)
+library(xtable)
 options(digits=3)
 trellis.par.set(theme=theme.mosaic())
 ```
@@ -64,6 +65,7 @@ trellis.par.set(theme=theme.mosaic())
 
 # Logistic Regression 
 
+![Logistic](LogisticRegressionSTAT495FARS.png)
 
 # Random Forest 
 
