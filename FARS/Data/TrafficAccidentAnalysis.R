@@ -103,7 +103,12 @@ print(paste('Accuracy',1-misClasificError)) #about 83% accuracy
 
 
 
-
+train$FIPSCode <- as.factor(train$FIPSCode)
+train$DriverDrinking <- as.factor(train$DriverDrinking)
+logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
+              family=binomial(link='logit'), data = train)
 
 
 

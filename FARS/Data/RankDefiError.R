@@ -1,4 +1,4 @@
-data = read.csv("DriversData.csv")
+data1 = read.csv("DriversData.csv")
 
 library(plyr)
 library(dplyr)
@@ -17,7 +17,7 @@ small <- data %>% dplyr::select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V
                                 A_LGT_COND, A_FATALS, A_DRUNK_DR, A_WEATHER, A_WEATHER1, A_WEATHER2,
                                 A_WRK_ZONE, A_MAN_COLL, P_AGE, P_SEX, P_INJ_SEV, P_SEAT_POS, 
                                 P_AIR_BAG, P_EJECTION, P_EJ_PATH, P_DRINKING, P_DRUGS, 
-                                P_LAG_HRS, P_DOA, A_COUNTY, A_STATE, A_CITY)
+                                P_LAG_HRS, P_DOA, A_COUNTY, A_STATE, A_CITY, A_DAY_WEEK, A_HOUR)
 
 filter <- unique(small) 
 small <- filter
@@ -66,24 +66,55 @@ data91 <- rename(data91, FIPSCode = StateCounty)
 FinalMerge2<- dfTotData %>% right_join(data91, by = "FIPSCode")
 
 ########Build training and test models here
-###Rename variables and the levels and take out speed and other variables with 0,8 or whatever 
-#(use drop levels after filtering for those values)
-###Create a night/day and weekend status variables (less than 6 and [1,7] weekend/weekday?)
-###Drop vehicle deformed predictor and one other 
-
-
 FinalMerge2 <- rename(FinalMerge2, IncomeToPovRatio = C17002_001)
 FinalMerge2 <- rename(FinalMerge2, TotalPopulation = B01003_001)
-names(FinalMerge2)
-FinalMerge2 %>% dplyr::select(P_SEX, P_AGE, PDWI, PSuspension, PCrash, 
-                              TravSpeed, P_DRUGS, A_FATALS, TotalPopulation, 
-                              IncomeToPovRatio, 
-                              )
+FinalMerge2 <- rename(FinalMerge2, Sex = P_SEX)
+FinalMerge2 <- rename(FinalMerge2, PrevDWIConvictions = PDWI)
+FinalMerge2 <- rename(FinalMerge2, PrevSuspensions = PSuspension)
+FinalMerge2 <- rename(FinalMerge2, VehicleSpeed = TravSpeed)
+FinalMerge2 <- rename(FinalMerge2, ReportedDrugs = P_DRUGS)
+FinalMerge2 <- rename(FinalMerge2, NumFatalities = A_FATALS)
+FinalMerge2 <- rename(FinalMerge2, DeathSceneStatus = P_DOA)
+FinalMerge2 <- rename(FinalMerge2, DriverDrinking = V_DR_DRINK)
+
+FinalMerge2 <- FinalMerge2 %>% filter(Sex == '1' | Sex == '2')
+FinalMerge2$Sex <- droplevels(FinalMerge2$Sex)
+levels(FinalMerge2$Sex) <- c("Male", "Female")
+
+FinalMerge2 <- FinalMerge2 %>% filter(ReportedDrugs == '0' | ReportedDrugs == '1')
+FinalMerge2$ReportedDrugs <- droplevels(FinalMerge2$ReportedDrugs)
+levels(FinalMerge2$ReportedDrugs) <- c("No", "Yes")
+
+FinalMerge2 <- FinalMerge2 %>% filter(DeathSceneStatus == '7' | DeathSceneStatus == '8')
+FinalMerge2$DeathSceneStatus <- droplevels(FinalMerge2$DeathSceneStatus)
+levels(FinalMerge2$DeathSceneStatus) <- c("DiedAtScence", "DiedAtEnroute")
+
+FinalMerge2 <- FinalMerge2 %>% filter(DeathSceneStatus == '7' | DeathSceneStatus == '8')
+FinalMerge2$DeathSceneStatus <- droplevels(FinalMerge2$DeathSceneStatus)
+levels(FinalMerge2$DeathSceneStatus) <- c("DiedAtScence", "DiedAtEnroute")
+
+
+#Creating weekend/weekday predictor 
+FinalMerge2 <- FinalMerge2 %>%
+  mutate(WeekdayStatus = ifelse(A_HOUR == '1' | A_HOUR == '7', "Weekend", "Weekday"))
+FinalMerge2$WeekdayStatus <- as.factor(FinalMerge2$WeekdayStatus)
 
 
 
 
-mergeData <- FinalMerge2
+
+
+
+
+
+train$FIPSCode <- as.factor(train$FIPSCode)
+train$DriverDrinking <- as.factor(train$DriverDrinking)
+logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
+              family=binomial(link='logit'), data = train)
+
+
 mergeData$county <- as.factor(mergeData$county)
 n <- nrow(mergeData)
 shuffled <- mergeData[sample(n),]
