@@ -13,7 +13,7 @@ library(leaflet)
 library(choroplethrMaps)
 
 data("state.regions")
-accidents <- read.csv("~/git/STAT495-Group3/FARS/Maps/mapsaccident.csv")
+accidents <- read.csv("mapsaccident.csv")
 
 vars <- c(
   "Drunk driving?" = "DRUNK_DR",
