@@ -36,11 +36,12 @@ countypop <- countypop %>%
   filter(State != "PR")
 
 data(state.map)
-load("~/git/STAT495-Group3/FARS/Data/StatesLevelACSData/TotalPopulation.Rda")
+# load("~/git/STAT495-Group3/FARS/Data/StatesLevelACSData/TotalPopulation.Rda")
+load("TotalPopulation.Rda")
 names(df10) <- c("STATE", "Population")
 
-accidents <- read.csv("~/git/STAT495-Group3/FARS/Maps/mapsaccident.csv")
-codeInfo <- read.csv("~/git/STAT495-Group3/FARS/Data/GLCounty.csv")
+accidents <- read.csv("mapsaccident.csv")
+codeInfo <- read.csv("GLCounty.csv")
 
 accidents <- head(accidents, nrow(accidents)-1) %>%
   mutate(STATE = readr::parse_number(STATE), COUNTY = readr::parse_number(COUNTY),
