@@ -1,0 +1,54 @@
+---
+title: ''
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mosaic)
+library(xtable)
+```
+
+```{r echo = FALSE, results="asis", fig.align="left"}
+load("FinalLogisticData.Rda")
+mergeData$county <- as.factor(mergeData$county)
+n <- nrow(mergeData)
+shuffled <- mergeData[sample(n), ]
+train <- shuffled[1:round(0.7 * n),]
+test <- shuffled[(round(0.7 * n) + 1):n,]
+
+train$FIPSCode <- as.factor(train$FIPSCode)
+train$DriverDrinking <- as.factor(train$DriverDrinking)
+logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
+              family=binomial(link='logit'), data = train)
+
+print(xtable(summary(logmod), caption = 'Logistic Regression Summary', digits = c(6, 6, 3, 3, 3)))
+#test$DriverDrinking <- as.numeric(test$DriverDrinking)
+#fitted.results <- predict(logmod,newdata=test,type='response')
+#fitted.results <- ifelse(fitted.results > 0.5,2,1)
+#misClasificError <- mean(fitted.results != test$DriverDrinking)
+#print(paste('Accuracy',1-misClasificError)) #70% accuracy
+
+#probs <- predict(tree, test, type = "prob")[,2]
+#pred <- prediction(probs, test$label)
+#perf <- performance(pred, "tpr", "fpr")
+#plot(perf)
+#library(partykit)
+#plot(as.party(perf))
+
+
+
+#set.seed(1000)
+#require(randomForest)
+#train$V_DR_DRINK <- as.numeric(train$V_DR_DRINK)
+#treemod <- randomForest(as.factor(DriverDrinking) ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + VehicleDeformed + NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus, data = train, ntree = 50, mtry = 4, keep.forest = FALSE, importance = TRUE)
+#varImpPlot(treemod)
+```
+
+
+
+```{r}
+
+
+```

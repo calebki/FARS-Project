@@ -1,11 +1,11 @@
 data = read.csv("DriversData.csv")
 
+library(plyr)
 library(dplyr)
 library(mlbench)
 library(caret)
 library(readr)
 require(mosaic)
-library(plyr)
 library(randomForest)
 library(geepack)
 library(gee)
@@ -24,7 +24,7 @@ small <- filter
 
 countiesL <- tally(small$A_COUNTY)
 data4 <- data.frame(countiesL)
-data6 <- rename(data4, c("X" = "A_COUNTY"))
+data6 <- rename(data4, A_COUNTY = X)
 data7 <- merge(data6, small) #merge the frequencies of the counties 
 data7 <- unique(data7) #unique observations include 48577 total 
 
@@ -36,15 +36,14 @@ data8 <- data7 %>%
 data8$A_COUNTY <- as.factor(data8$A_COUNTY)
 nrow(data8) #48169 observations 
 
-
 data8$P_SEX = as.factor(data8$P_SEX)
 data8$P_DRUGS = as.factor(data8$P_DRUGS)
 data8$P_DOA = as.factor(data8$P_DOA)
 data8$V_DEFORMED = as.factor(data8$V_DEFORMED)
 data8$V_DR_DRINK = as.factor(data8$V_DR_DRINK)
 
-data8 <- rename(data8, c("A_STATE" = "state"))
-data8 <- rename(data8, c("A_COUNTY" = "county"))
+data8 <- rename(data8, state = A_STATE)
+data8 <- rename(data8, county = A_COUNTY)
 data8$state = as.factor(data8$state)
 data8$county = as.factor(data8$county)
 
@@ -57,23 +56,32 @@ data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
 
 data9 <- data8
 
-data9 <- unique(data9) #819 observations so county level data pulled only for these counties 
+data9 <- unique(data9) #48169 observations
 data9$state <- as.numeric(data9$state)
 data9$county <- as.numeric(data9$county)
 data91 <- data9 %>% mutate(StateCounty = ((1000*state) + county))
 
 ACS <- load("dfTotData.csv")
-data91 <- rename(data91, c("StateCounty" = "FIPSCode"))
+data91 <- rename(data91, FIPSCode = StateCounty)
 FinalMerge2<- dfTotData %>% right_join(data91, by = "FIPSCode")
 
 ########Build training and test models here
-FinalMerge2<- rename(FinalMerge2, c("B27001_001" = "HealthInsuCovTotal"))
-FinalMerge2<- rename(FinalMerge2, c("B27001_002" = "HealthInsuCovMale"))
-FinalMerge2<- rename(FinalMerge2, c("B27001_030" = "HealthInsuCovFemale"))
-FinalMerge2<- rename(FinalMerge2, c("C17002_001" = "IncomeToPovRatio"))
-FinalMerge2<- rename(FinalMerge2, c("B01001_002" = "TotalMale"))
-FinalMerge2<- rename(FinalMerge2, c("B01001_026" = "TotalFemale"))
-FinalMerge2<- rename(FinalMerge2, c("B01003_001" = "TotalPopulation"))
+###Rename variables and the levels and take out speed and other variables with 0,8 or whatever 
+#(use drop levels after filtering for those values)
+###Create a night/day and weekend status variables (less than 6 and [1,7] weekend/weekday?)
+###Drop vehicle deformed predictor and one other 
+
+
+FinalMerge2 <- rename(FinalMerge2, IncomeToPovRatio = C17002_001)
+FinalMerge2 <- rename(FinalMerge2, TotalPopulation = B01003_001)
+names(FinalMerge2)
+FinalMerge2 %>% dplyr::select(P_SEX, P_AGE, PDWI, PSuspension, PCrash, 
+                              TravSpeed, P_DRUGS, A_FATALS, TotalPopulation, 
+                              IncomeToPovRatio, 
+                              )
+
+
+
 
 mergeData <- FinalMerge2
 mergeData$county <- as.factor(mergeData$county)
@@ -105,4 +113,9 @@ pR2(logmod)
 
 #pred <- predict(logmod, test, type = "response")
 #conf <- table(test$label, pred) #building confusion matrix 
-#print(sum(diag(conf)) / sum(conf)) #63% model accuracy 
+#print(sum(diag(conf)) / sum(conf)) #63% model accuracy
+
+
+
+#Join the data by FIPCode 
+#Eliminate variables like sex and others with 0, 8 or 9 attributes 

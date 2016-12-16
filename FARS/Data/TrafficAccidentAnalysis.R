@@ -1,11 +1,12 @@
 
 data = read.csv("DriversData.csv")
+
+library(plyr)
 library(dplyr)
 library(mlbench)
 library(caret)
 library(readr)
 require(mosaic)
-library(plyr)
 library(randomForest)
 library(geepack)
 library(gee)
@@ -24,7 +25,8 @@ small <- filter
 
 countiesL <- tally(small$A_COUNTY)
 data4 <- data.frame(countiesL)
-data6 <- rename(data5, c("X" = "A_COUNTY"))
+data6 <- rename(data5, A_COUNTY = X)
+#data6 <- rename(data5, c("X" = "A_COUNTY"))
 data7 <- merge(data6, small) #merge the frequencies of the counties 
 data7 <- unique(data7) #unique observations include 48577 total 
 

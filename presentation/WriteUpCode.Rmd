@@ -1,0 +1,51 @@
+---
+title: "PresentationWritten"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(acs)
+library(tibble)
+library(dplyr)
+library(mlbench)
+library(caret)
+library(readr)
+require(mosaic)
+library(plyr)
+library(randomForest)
+library(geepack)
+library(gee)
+```
+
+```{r}
+#Rejoining the state and county datasets to create a collective dataframe 
+fips.county <- rename(fips.county, c("State" = "STATEL"))
+fips.state <- rename(fips.state, c("STUSAB" = "STATEL"))
+fips.county$STATEL <- as.factor(fips.county$STATEL)
+fips.state$STATEL <- as.factor(fips.state$STATEL)
+join <- inner_join(fips.state, fips.county, by = "STATEL")
+
+fipsEncode <- join %>% mutate(FIPSCode = ((1000*State.ANSI) + County.ANSI))
+fipsEncode1 <- fipsEncode %>% mutate(StateCounty = paste(County.Name, STATE_NAME, sep = ", "))
+
+#TOTAL POPULATION 
+x <- geo.make(state = "*", county = "*")
+y <- acs.fetch(endyear=2015, geography=x, table.number="B01003", 
+               key = "17b6e09794a8f4a42664535f0e519179cc06f5a7")
+z <- estimate(y)
+zdata <- as.data.frame(z)
+dfPop <- tibble::rownames_to_column(zdata, "StateCounty")
+JoinPop <- inner_join(dfPop, fipsEncode1, by = "StateCounty")
+
+#INCOME TO POP RATIO  
+x1 <- geo.make(state = "*", county = "*")
+y1 <- acs.fetch(endyear=2015, geography=x1, table.number="C17002", key = "17b6e09794a8f4a42664535f0e519179cc06f5a7")
+z1 <- estimate(y1)
+z1 <- as.data.frame(z1)
+z2 <- z1 %>% dplyr::select(C17002_001)
+dfIncome <- tibble::rownames_to_column(z2, "StateCounty")
+dfTotData <- inner_join(dfIncome, JoinPop, by = "StateCounty")
+
+save(dfTotData, file = "dfTotData.csv")
+```
