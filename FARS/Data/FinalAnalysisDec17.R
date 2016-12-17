@@ -146,6 +146,4 @@ modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDW
                             TotalPopulation, data = train, ntree = 100, mtry = 4, 
                           keep.forest = TRUE, importance = FALSE)
 conf <- modForest$confusion
-print(sum(diag(conf)) / sum(conf)) #63% model accuracy 
-
-
+print(sum(diag(conf)) / sum(conf)) 
