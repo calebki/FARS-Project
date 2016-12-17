@@ -18,17 +18,12 @@ countypopT$StateCounty <- as.factor(countypopT$StateCounty)
 levels(countypopT$StateCounty)[levels(countypopT$StateCounty)=="Doña Ana County, New Mexico"] <- "Dona Ana County, New Mexico"
 
 countypopT <- countypopT %>%
-  separate(StateCounty, c("County.Name", "STATE_NAME"), ",")
+  separate(StateCounty, c("County.Name", "STATE_NAME"), ", ") #separator by comma and space 
 countypopT$STATE_NAME <- as.factor(countypopT$STATE_NAME)
 fips.state$STATE_NAME <- as.factor(fips.state$STATE_NAME)
-s1 <- merge(fips.state, countypopT, by = "STATE_NAME")
-head(s1)
-
-
-nrow(countypopT)
-nrow(fips.county)
-
-
-
-#Merge countypopT with fips.state and fips.county 
-
+#merge county and state data 
+fips.state <- rename(fips.state, State = STUSAB)
+first <- merge(fips.state, fips.county, by = "State") #merge by state here 
+first$County.Name <- as.factor(first$County.Name)
+countypopT$County.Name <- as.factor(countypopT$County.Name)
+FinalPop1 <- merge(first, countypopT, by = c("County.Name", "STATE_NAME"))
