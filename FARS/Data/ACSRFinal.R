@@ -19,6 +19,14 @@ levels(countypopT$StateCounty)[levels(countypopT$StateCounty)=="Doña Ana County
 
 countypopT <- countypopT %>%
   separate(StateCounty, c("County.Name", "STATE_NAME"), ",")
+countypopT$STATE_NAME <- as.factor(countypopT$STATE_NAME)
+fips.state$STATE_NAME <- as.factor(fips.state$STATE_NAME)
+s1 <- merge(fips.state, countypopT, by = "STATE_NAME")
+head(s1)
+
+
+nrow(countypopT)
+nrow(fips.county)
 
 
 
