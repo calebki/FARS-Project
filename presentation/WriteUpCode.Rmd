@@ -7,12 +7,31 @@ output: html_document
 Motivation: Be sure to motivate your topic at the beginning of your write-up. You should try to hook the reader early on. Assume that your audience is a skeptical data scientist who has stumbled across your blog but has very little time to read it. Can you give her a reason to continue reading? A cool visualization or result can help.
 
 
-
-
 Google BigQuery: We used Google's BigQuery to source our datasets. Since we used Person, Vehicle and Accident level data, BigQuery provided a cohesive and structured environment for managing all three. Additionally the user-friendly interface was conducive to basic exploratory analysis with SQL as well as for performing variety of joins. BigQuery as a service is an analytics warehouse with the ability to process data on the petabyte scale. It provides a serverless and infrastructure-less environment since it deviates the need of a database administrator given that the data is processed and stored on the cloud. Its features include the ability to ingest data from different sources including Google Cloud Storage, Cloud Datastore, and livestream. Data can be read and written via Cloud Dataflow, Spark, and Hadoop and exported out in the Cloud. A key feature of BigQuery is the ability to collaborate and share queries as well as data by adding members to a project.
   Most basic and preliminary use of BigQuery entails navigating between two environments: Google BigQuery and Google Cloud PLatform. Data can be uploaded in BigQuery by first creating a project from the ProjectsPage and enable billing as well as the BigQuery API. Once a project has been created, it can be selected on the Google BigQuery platform and datasets can be added from the create a new dataset drop down option on the highlighted project (available on the left side of the inteface). After specifying a dataset, it is populated by tables of interest. The specification of the table entails defining a schema (structure or data skeleton), which means specifying the variable names as well the data types for each variable. The variable names and data types should match the original data file that is being exported to BigQuery. Once the data is exported in a table, it can be previewed and queried through the compose query tab on the left. Tables can additionally be joined as well given specification of a unique key. Past query and job history can be viewed on the left. 
   After the data is queried, the resulting dataset can be exported out to the Cloud. This export can be achieved by first creating a bucket from the Cloud console. Buckets can be created by selecting the Storage option from the tabbed main Cloud Platform console page. After a bucket is created, the queried data can be exported to that bucket with file name and format specified. 
   BigQuery has additional features worth highlighting like the publicly available datasets, which include the National Oceanic and Atmospheric Administration (NOAA) global data obtained from the USAF Climatology Center, US Disease Surveillance data from the CDC, NYC Taxi and Limousine Commission (TLC) Trip Data and GDELT Internet Archive Book Data. 
+  
+
+Datasets: The traffic fatalities dataset for 2015 was provided from the Fatality Analysis Reporting System (FARS). The original dataset contained about 19 different data files, all which highlighted the accident circumstances along with the driver and vehicle attributes. In our analysis, we analyzed the Person, Vechicle and Accident level data. The Person data contained one record per person and described all the individuals involved in the crash with information like age, sex, and injury severity. The Vehicle dataset contained one record per-in transport motor vehicle and describes information for all the vehicles involved in the accident like the vehicle's speed and deformed status. The Accident dataset contains one record per crash and holds information about crash attributes like the number of fatalities, and the environmental factors like the weather and lighting conditions. 
+  The ACS dataset was obtained through the ACS package. 
+  
+  
+Format: You don’t need to follow a specific format in the write-up, but you should start with an introduc- tory paragraph and finish with a conclusion. These paragraphs needs not follow the formal writing style that you would use in most other classes. Here, a colloquial style that is accessible to a lay reader is appropriate.
+Nevertheless, your write-up should address the following questions:
+1. Why should anyone care about this?
+2. What is this about? Do not assume that your readers have any domain knowledge! The burden of explanation as to what you are talking about is on you! For example, if your project involves phyllo- genetic trees, do not assume that your audience has anything other than a basic, lay understanding of genetics.
+3. Where did your data come from? What kind of data was it? Is there a link to the data or some other way for the reader to follow up on your work?
+4. What are your findings? What kind of statistical computations (if any) have you done to support those conclusions? Again, while the R code will show you performing the calculation, it is up to you to interpret, in English sentences, the results of these calculations. Do not forget about units, axis labels, etc.
+￼4
+Nicholas Horton STAT 495: Project Fall 2016
+5. What are the limitations of your work? Be clear so that others do not misinterpret your findings. To what population do your results apply? Do they generalize? Could your work be extended with more data or computational power or time to analyze? How could your study be improved? Suggesting plausible extensions don’t weaken your work – they strengthen it by connecting it to future work.
+
+
+
+Limitations and Future Work: 
+
+
 
 
 

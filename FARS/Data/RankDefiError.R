@@ -1,4 +1,4 @@
-data1 = read.csv("DriversData.csv")
+data1 = read.csv("DriversData.csv") #only data for the drivers selected 
 
 library(plyr)
 library(dplyr)
@@ -22,14 +22,21 @@ small <- data %>% dplyr::select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V
 filter <- unique(small) 
 small <- filter
 
-countiesL <- tally(small$A_COUNTY)
+#Counting the county frequency by fips code
+
+small$A_STATE <- as.numeric(small$A_STATE)
+small$A_COUNTY <- as.numeric(small$A_COUNTY)
+small <- small %>% mutate(StateCounty = ((1000*A_STATE) + A_COUNTY)) #fips code 
+
+
+countiesL <- tally(small$StateCounty)
 data4 <- data.frame(countiesL)
-data6 <- rename(data4, A_COUNTY = X)
+data6 <- rename(data4, FIPSCode = X)
 data7 <- merge(data6, small) #merge the frequencies of the counties 
 data7 <- unique(data7) #unique observations include 48577 total 
 
 #create new variable here: only counties 
-data7$A_COUNTY<- as.character(data7$A_COUNTY)
+data7$FIPS<- as.character(data7$A_COUNTY)
 
 data8 <- data7 %>%
   filter(Freq > 10)
@@ -57,25 +64,22 @@ data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
 data9 <- data8
 
 data9 <- unique(data9) #48169 observations
-data9$state <- as.numeric(data9$state)
-data9$county <- as.numeric(data9$county)
-data91 <- data9 %>% mutate(StateCounty = ((1000*state) + county))
 
 ACS <- load("dfTotData.csv")
-data91 <- rename(data91, FIPSCode = StateCounty)
 FinalMerge2<- dfTotData %>% right_join(data91, by = "FIPSCode")
 
 ########Build training and test models here
-FinalMerge2 <- rename(FinalMerge2, IncomeToPovRatio = C17002_001)
-FinalMerge2 <- rename(FinalMerge2, TotalPopulation = B01003_001)
-FinalMerge2 <- rename(FinalMerge2, Sex = P_SEX)
-FinalMerge2 <- rename(FinalMerge2, PrevDWIConvictions = PDWI)
-FinalMerge2 <- rename(FinalMerge2, PrevSuspensions = PSuspension)
-FinalMerge2 <- rename(FinalMerge2, VehicleSpeed = TravSpeed)
-FinalMerge2 <- rename(FinalMerge2, ReportedDrugs = P_DRUGS)
-FinalMerge2 <- rename(FinalMerge2, NumFatalities = A_FATALS)
-FinalMerge2 <- rename(FinalMerge2, DeathSceneStatus = P_DOA)
-FinalMerge2 <- rename(FinalMerge2, DriverDrinking = V_DR_DRINK)
+FinalMerge2 <- rename(FinalMerge2, IncomeToPovRatio = C17002_001) #Quant
+FinalMerge2 <- rename(FinalMerge2, TotalPopulation = B01003_001) #Quant
+FinalMerge2 <- rename(FinalMerge2, Sex = P_SEX) #Cat
+FinalMerge2 <- rename(FinalMerge2, PrevDWIConvictions = PDWI) #Quantitative
+FinalMerge2 <- rename(FinalMerge2, PrevSpeeding = PSpeed) #Quantitative
+FinalMerge2 <- rename(FinalMerge2, PrevSuspensions = PSuspension) #Quant
+FinalMerge2 <- rename(FinalMerge2, VehicleSpeed = TravSpeed) #Quant
+FinalMerge2 <- rename(FinalMerge2, ReportedDrugs = P_DRUGS) #Cat
+FinalMerge2 <- rename(FinalMerge2, NumFatalities = A_FATALS) #Quant
+FinalMerge2 <- rename(FinalMerge2, DeathSceneStatus = P_DOA) #Cat
+FinalMerge2 <- rename(FinalMerge2, DriverDrinking = V_DR_DRINK) #Cat
 
 FinalMerge2 <- FinalMerge2 %>% filter(Sex == '1' | Sex == '2')
 FinalMerge2$Sex <- droplevels(FinalMerge2$Sex)
@@ -89,54 +93,38 @@ FinalMerge2 <- FinalMerge2 %>% filter(DeathSceneStatus == '7' | DeathSceneStatus
 FinalMerge2$DeathSceneStatus <- droplevels(FinalMerge2$DeathSceneStatus)
 levels(FinalMerge2$DeathSceneStatus) <- c("DiedAtScence", "DiedAtEnroute")
 
-FinalMerge2 <- FinalMerge2 %>% filter(DeathSceneStatus == '7' | DeathSceneStatus == '8')
-FinalMerge2$DeathSceneStatus <- droplevels(FinalMerge2$DeathSceneStatus)
-levels(FinalMerge2$DeathSceneStatus) <- c("DiedAtScence", "DiedAtEnroute")
-
-
 #Creating weekend/weekday predictor 
 FinalMerge2 <- FinalMerge2 %>%
-  mutate(WeekdayStatus = ifelse(A_HOUR == '1' | A_HOUR == '7', "Weekend", "Weekday"))
+  mutate(WeekdayStatus = ifelse(A_DAY_WEEK == '1' | A_DAY_WEEK == '7', "Weekend", "Weekday"))
 FinalMerge2$WeekdayStatus <- as.factor(FinalMerge2$WeekdayStatus)
 
+FinalMerge2 <- FinalMerge2 %>%
+  mutate(DayStatus = ifelse(A_HOUR < 6 | A_HOUR > 18, "Night", "Day"))
+FinalMerge2$DayStatus <- as.factor(FinalMerge2$DayStatus)
 
+test <- FinalMerge2 %>% select(A_HOUR, DayStatus, A_DAY_WEEK, WeekdayStatus) #6908 observations in total 
 
+#Creating test and training datasets 
 
-
-
-
-
-
-train$FIPSCode <- as.factor(train$FIPSCode)
-train$DriverDrinking <- as.factor(train$DriverDrinking)
-logmod <- glm(formula = DriverDrinking ~ Sex + Age + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
-                NumFatalities + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
-              + IncomeToPovRatio + TotalPopulation + WeekdayStatus + DayStatus,
-              family=binomial(link='logit'), data = train)
-
-
-mergeData$county <- as.factor(mergeData$county)
+#mergeData$county <- as.factor(mergeData$county)
+mergeData <- FinalMerge2
 n <- nrow(mergeData)
 shuffled <- mergeData[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
-train$FIPSCode <- as.factor(train$FIPSCode)
-logmod <- glm(formula = V_DR_DRINK ~ P_SEX + Age + FIPSCode + P_DRUGS + TravSpeed + P_DOA + 
-                V_DEFORMED + A_FATALS + PSuspension + PCrash + PDWI + PSpeed + PCrash + HealthInsuCovTotal + 
-                IncomeToPovRatio + TotalMale + TotalFemale + TotalPopulation, 
+logmod <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+              + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + TotalPopulation,
               family=binomial(link='logit'), data = train)
-
 summary(logmod)
 
 
-
-require(randomForest)
-mergeData$V_DR_DRINK <- as.numeric(mergeData$V_DR_DRINK)
-treemod <- randomForest(V_DR_DRINK ~ P_SEX + Age + FIPSCode + P_DRUGS + TravSpeed + P_DOA + 
-  V_DEFORMED + A_FATALS + PSuspension + PCrash + PDWI + PSpeed + PCrash + B27001_001 + 
-  B27001_002 + B27001_030 + C17002_001 + B01001_002 + B01001_026, data = mergeData, ntree = 50, mtry = 3, 
-  keep.forest = FALSE, importance = TRUE)
+treemod <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
+                          PrevSpeeding + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                          NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
+                          TotalPopulation, data = train, ntree = 100, mtry = 4, 
+                        keep.forest = FALSE, importance = TRUE)
 
 
 library(pscl)

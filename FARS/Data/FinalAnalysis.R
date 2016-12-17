@@ -1,4 +1,4 @@
-data1 = read.csv("DriversData.csv")
+data1 = read.csv("DriversData.csv") #only data for the drivers selected 
 
 library(plyr)
 library(dplyr)
@@ -36,9 +36,8 @@ data7 <- merge(data6, small) #merge the frequencies of the counties
 data7 <- unique(data7) #unique observations include 48577 total 
 
 #create new variable here: only counties 
-data7$StateCounty <- as.character(data7$StateCounty)
+data7$FIPS<- as.character(data7$A_COUNTY)
 
-#filters with frequency higher than 10 
 data8 <- data7 %>%
   filter(Freq > 10)
 data8$A_COUNTY <- as.factor(data8$A_COUNTY)
