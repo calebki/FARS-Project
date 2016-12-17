@@ -26,21 +26,19 @@ small <- filter
 
 small$A_STATE <- as.numeric(small$A_STATE)
 small$A_COUNTY <- as.numeric(small$A_COUNTY)
-small <- small %>% mutate(StateCounty = ((1000*A_STATE) + A_COUNTY)) #fips code 
+small <- small %>% mutate(FIPSCode = ((1000*A_STATE) + A_COUNTY)) #fips code 
 
 
-countiesL <- tally(small$StateCounty)
+countiesL <- tally(small$FIPSCode)
 data4 <- data.frame(countiesL)
-data6 <- rename(data4, StateCounty = X)
-data7 <- merge(data6, small) #merge the frequencies of the counties 
-data7 <- unique(data7) #unique observations include 48577 total 
+data6 <- rename(data4, FIPSCode = X)
+data7 <- merge(data6, small) 
+data7 <- unique(data7) 
 
 #create new variable here: only counties 
-data7$FIPS<- as.character(data7$A_COUNTY)
 
 data8 <- data7 %>%
   filter(Freq > 10)
-data8$A_COUNTY <- as.factor(data8$A_COUNTY)
 nrow(data8) #48169 observations 
 
 data8$P_SEX = as.factor(data8$P_SEX)
@@ -62,11 +60,12 @@ data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
                           PSpeed = as.numeric(V_PREV_SPD))
 
 data9 <- data8
-
 data9 <- unique(data9) #48169 observations
 
-ACS <- load("dfTotData.csv")
-FinalMerge2<- dfTotData %>% right_join(data91, by = "FIPSCode")
+ACS <- load("CensusFinalD1.Rda")
+CensusFinalD1$FIPSCode <- as.factor(CensusFinalD1$FIPSCode)
+FinalMerge2<- CensusFinalD1 %>% right_join(data9, by = "FIPSCode") #40422 observations
+FinalMerge2 <- na.omit(FinalMerge2)
 
 ########Build training and test models here
 FinalMerge2 <- rename(FinalMerge2, IncomeToPovRatio = C17002_001) #Quant
@@ -104,9 +103,8 @@ FinalMerge2$DayStatus <- as.factor(FinalMerge2$DayStatus)
 
 test <- FinalMerge2 %>% select(A_HOUR, DayStatus, A_DAY_WEEK, WeekdayStatus) #6908 observations in total 
 
-#Creating test and training datasets 
 
-#mergeData$county <- as.factor(mergeData$county)
+#Creating test and training sets 
 mergeData <- FinalMerge2
 n <- nrow(mergeData)
 shuffled <- mergeData[sample(n),]
@@ -125,16 +123,3 @@ treemod <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWICo
                           NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
                           TotalPopulation, data = train, ntree = 100, mtry = 4, 
                         keep.forest = FALSE, importance = TRUE)
-
-
-library(pscl)
-pR2(logmod)
-
-#pred <- predict(logmod, test, type = "response")
-#conf <- table(test$label, pred) #building confusion matrix 
-#print(sum(diag(conf)) / sum(conf)) #63% model accuracy
-
-
-
-#Join the data by FIPCode 
-#Eliminate variables like sex and others with 0, 8 or 9 attributes 
