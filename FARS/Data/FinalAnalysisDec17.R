@@ -29,22 +29,19 @@ small$A_COUNTY <- as.numeric(small$A_COUNTY)
 small <- small %>% mutate(FIPSCode = ((1000*A_STATE) + A_COUNTY)) #fips code 
 
 
-countiesL <- tally(small$FIPSCode)
+countiesL <- tally(small$FIPSCode) #tally by FIPSCode
 data4 <- data.frame(countiesL)
 data6 <- rename(data4, FIPSCode = X)
 data7 <- merge(data6, small) 
 data7 <- unique(data7) 
 
 #create new variable here: only counties 
-
 data8 <- data7 %>%
   filter(Freq > 10)
-nrow(data8) #48169 observations 
 
 data8$P_SEX = as.factor(data8$P_SEX)
 data8$P_DRUGS = as.factor(data8$P_DRUGS)
 data8$P_DOA = as.factor(data8$P_DOA)
-data8$V_DEFORMED = as.factor(data8$V_DEFORMED)
 data8$V_DR_DRINK = as.factor(data8$V_DR_DRINK)
 
 data8 <- rename(data8, state = A_STATE)
@@ -111,10 +108,19 @@ train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
 logmod <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
-              + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
-                NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + TotalPopulation,
+              + ReportedDrugs + VehicleSpeed + DeathSceneStatus 
+              + NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + TotalPopulation,
               family=binomial(link='logit'), data = train)
-summary(logmod)
+
+logTable <- tidy(logmod)
+logTable <- logTable %>% mutate(ExpEstimate = exp(estimate))
+logTable <- logTable %>% dplyr::select(term, estimate, ExpEstimate, std.error, p.value)
+logTable <- rename(logTable, Estimate = estimate)
+logTable <- rename(logTable, Term = term)
+logTable <- rename(logTable, StdError = std.error)
+logTable <- rename(logTable, PValue = p.value)
+logTable 
+
 prob <- predict(logmod, newdata=test, type="response")
 pred <- prediction(prob, test$DriverDrinking)
 perf <- performance(pred, measure = "tpr", x.measure = "fpr")
@@ -123,7 +129,7 @@ plot(perf)
 #Accuracy assessment 
 auc <- performance(pred, measure = "auc")
 auc <- auc@y.values[[1]]
-auc #79% accurate 
+auc #75% accurate 
 
 
 set.seed(1000)
@@ -134,10 +140,6 @@ modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWI
                         keep.forest = FALSE, importance = TRUE)
 #Importance plots  
 varImpPlot(modForest)
-test.forest = predict(modForest, type = "prob", newdata = test)
-forestpred = prediction(test.forest[,2], test$DriverDrinking)
-forestperf = performance(forestpred, "tpr", "fpr")
-plot(perf, main="Random Forest ROC [Accuracy: 0.65]")
 
 #Assessing model accuracy 
 modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
@@ -145,5 +147,10 @@ modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDW
                             NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
                             TotalPopulation, data = train, ntree = 100, mtry = 4, 
                           keep.forest = TRUE, importance = FALSE)
+
+test.forest = predict(modForest1, type = "prob", newdata = test)
+forestpred = prediction(test.forest[,2], test$DriverDrinking)
+forestperf = performance(forestpred, "tpr", "fpr")
+plot(perf, main="Random Forest ROC [Accuracy: 0.74]")
 conf <- modForest$confusion
 print(sum(diag(conf)) / sum(conf)) 
