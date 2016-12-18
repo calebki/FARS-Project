@@ -9,6 +9,7 @@ require(mosaic)
 library(randomForest)
 library(geepack)
 library(gee)
+library(broom)
 
 #should get around 30000 observations: if more than person involved in an accident 
 
@@ -119,7 +120,7 @@ logTable <- rename(logTable, Estimate = estimate)
 logTable <- rename(logTable, Term = term)
 logTable <- rename(logTable, StdError = std.error)
 logTable <- rename(logTable, PValue = p.value)
-logTable 
+logTable  #added exponentiated estimate column in the model summary 
 
 prob <- predict(logmod, newdata=test, type="response")
 pred <- prediction(prob, test$DriverDrinking)
