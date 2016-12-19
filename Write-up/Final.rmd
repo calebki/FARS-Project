@@ -77,8 +77,15 @@ The dataset was then split in test and training sets with a 70/30 split (70% dat
 Predictors accounting for the driver's previous suspensions and revocations, previous DWI convictions, previous speeding convictions, reported drug use, vehicle speed, death enroute to a medical facility, weekend, nighttime and total population all increased the odds of driver being drunk. 
 
   The coefficient for PrevSuspensions indicates that holding other variables constant, the odds of a driver involved in a fatal accident being drunk increase by 1.07 given an increase in the previous suspension record by one. Coefficient for PreDWIConvictions indicates that an increase in the previous DWI convictions by one produces an increase in the odds of the driver being drunk by about 1.05 holding other variables fixed. In regards to police reported drug involvement, the odds of a driver being drunk given police reported drug use by the driver is about 2.32 higher than the odds of the driver being drunk given no police reported drug use.
+    
 The odds of a driver being drunk are about 1.00 higher given a one unit increase in the vehicle speed holding other variables constant. There is about a 1.45 higher odds of a driver being drunk if the driver dies enroute to a medical facility than if the driver dies at scene of accident. If the day of crash is a weekend, then there is about a 1.93 odds of a drunk driver incidence in comparison to is the crash occurred on a weekday. If the time occurred during night, then there is about a 5.08 odds of the driver being drunk than if the crash occurred during the day. Lastly the odds of a drunk driver increase by about 1.00 given a one unit increase in the total population holding other variables fixed. 
- 
+
+### Predictors associated with decreased drunk driving incidence
+
+Predictors like the driver's sex, age, history of previous speeding suspensions, number of fatalities and income to poverty ratio all decreased the odds of a driver being drunk. 
+
+  The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.64 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.98 higher given a one year increase in age. Variable for PrevSpeeding indicates that holding other variables constant, the odds of a driver being drunk are 0.90 higher given an increase in previous speeding suspensions of one holding other variables constant. In regards to NumFatalities, the odds of a driver being drunk are about 0.79 higher iwith an increase in the number of fatalities by one. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased chance of odds of the driver being drunk. 
+  
 ```{r}
 data1 <- read.csv("DriversData.csv") #only data for the drivers selected 
 
