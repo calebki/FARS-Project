@@ -70,9 +70,11 @@ The FARS dataset was cleaned to remove any observations with unreported sex, dru
 
 ## Results/Analysis
 
-The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set). Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors. 
+The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set). Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors followed by random forest. Both models were then assessed via accuracy measured by cross validation and ROC curves. 
 
-### Predictors associated with increased drunk driving incidence
+### Logistic Regression 
+
+#### Predictors associated with increased drunk driving incidence
 
 Predictors accounting for the driver's previous suspensions and revocations, previous DWI convictions, previous speeding convictions, reported drug use, vehicle speed, death enroute to a medical facility, weekend, nighttime and total population all increased the odds of driver being drunk. 
 
@@ -80,14 +82,28 @@ Predictors accounting for the driver's previous suspensions and revocations, pre
     
 The odds of a driver being drunk are about 1.00 higher given a one unit increase in the vehicle speed holding other variables constant. There is about a 1.45 higher odds of a driver being drunk if the driver dies enroute to a medical facility than if the driver dies at scene of accident. If the day of crash is a weekend, then there is about a 1.93 odds of a drunk driver incidence in comparison to is the crash occurred on a weekday. If the time occurred during night, then there is about a 5.08 odds of the driver being drunk than if the crash occurred during the day. Lastly the odds of a drunk driver increase by about 1.00 given a one unit increase in the total population holding other variables fixed. 
 
-### Predictors associated with decreased drunk driving incidence
+#### Predictors associated with decreased drunk driving incidence
 
 Predictors like the driver's sex, age, history of previous speeding suspensions, number of fatalities and income to poverty ratio all decreased the odds of a driver being drunk. 
 
   The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.64 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.98 higher given a one year increase in age. Variable for PrevSpeeding indicates that holding other variables constant, the odds of a driver being drunk are 0.90 higher given an increase in previous speeding suspensions of one holding other variables constant. In regards to NumFatalities, the odds of a driver being drunk are about 0.79 higher iwith an increase in the number of fatalities by one. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased chance of odds of the driver being drunk. 
 
-### Logistic Regression Assessment
+#### Logistic Regression Assessment
 
+Logistic regression was assessed with model accuracy. Initial model accuracy was about 0.76 and then cross validation with k = 100 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about 0.72. 
+
+### Random Forest 
+
+#### 
+
+Random forest model was also built in addition to logistic regression. Random forest is an ensemble modeling approach where output from many bootstrapped decision trees is aggregated to provide an estimate. About 100 trees were grown for the random forest model and the same predictors were regressed to predict drunk driving incidence as used for the logistic regression (Sex, Age, PrevDWIConvictions, PrevSpeeding, PrevSuspensions, ReportedDrugs, DeathSceneStatus, VehicleSpeed, NumFatalities, WeekdayStatus, DayStatus, TotalPopulation, IncomeToPovRatio). 
+
+  Variable importance plot was constructed to assess which predictors are most important in predicting drunk driving incidence. Mean decrease in accuracy and mean decrease in gini index (measure of the model misclassification rate) was used as a criterion for importance. Day Status was the most important predictor according to the mean decrease accuracy index which means that exclusion of the day status predictor from the model would result in the highest decrease in accuracy. In comparison, age was the most important predictor according to the mean decrease gini index indicating that age results in the highest node purity, which signifies a low rate that a driver was mistakenly classified as drunk. Additionally IncomeToPovRatio and TotalPopulation were the next important predictors according to both the mean decrease accuracy and the mea decrease gini indices. 
+  
+  
+  
+  
+## Discussion 
 
   
 ```{r}
