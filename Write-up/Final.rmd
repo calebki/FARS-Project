@@ -85,6 +85,10 @@ The odds of a driver being drunk are about 1.00 higher given a one unit increase
 Predictors like the driver's sex, age, history of previous speeding suspensions, number of fatalities and income to poverty ratio all decreased the odds of a driver being drunk. 
 
   The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.64 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.98 higher given a one year increase in age. Variable for PrevSpeeding indicates that holding other variables constant, the odds of a driver being drunk are 0.90 higher given an increase in previous speeding suspensions of one holding other variables constant. In regards to NumFatalities, the odds of a driver being drunk are about 0.79 higher iwith an increase in the number of fatalities by one. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased chance of odds of the driver being drunk. 
+
+### Logistic Regression Assessment
+
+
   
 ```{r}
 data1 <- read.csv("DriversData.csv") #only data for the drivers selected 
@@ -210,7 +214,34 @@ auc <- performance(pred, measure = "auc")
 auc <- auc@y.values[[1]]
 auc #75% accurate 
 
+#Cross-validation for model assessment 
+dat <- mergeData
+k <- 100
+acc <- NULL
+set.seed(123)
+for(i in 1:k)
+{
+  smp_size <- floor(0.70 * nrow(dat))
+  index <- sample(seq_len(nrow(dat)),size=smp_size)
+  train <- dat[index, ]
+  test <- dat[-index, ]
+  model <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + PrevSpeeding 
+              + ReportedDrugs + VehicleSpeed + DeathSceneStatus 
+              + NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + TotalPopulation,
+              family=binomial(link='logit'), data = train)
+  results_prob <- predict(model,newdata=test,type='response')
+  results <- ifelse(results_prob > 0.5,1,0)
+  answers <- test$DriverDrinking
+  misClasificError <- mean(answers != results)
+  acc[i] <- 1-misClasificError
+}
 
+mean(acc)
+```
+
+
+#Random Forest 
+```{r}
 set.seed(1000)
 modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
                           PrevSpeeding + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
