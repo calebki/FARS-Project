@@ -94,15 +94,20 @@ Logistic regression was assessed with model accuracy. Initial model accuracy was
 
 ### Random Forest 
 
-#### 
+#### Variable Importance 
 
 Random forest model was also built in addition to logistic regression. Random forest is an ensemble modeling approach where output from many bootstrapped decision trees is aggregated to provide an estimate. About 100 trees were grown for the random forest model and the same predictors were regressed to predict drunk driving incidence as used for the logistic regression (Sex, Age, PrevDWIConvictions, PrevSpeeding, PrevSuspensions, ReportedDrugs, DeathSceneStatus, VehicleSpeed, NumFatalities, WeekdayStatus, DayStatus, TotalPopulation, IncomeToPovRatio). 
 
   Variable importance plot was constructed to assess which predictors are most important in predicting drunk driving incidence. Mean decrease in accuracy and mean decrease in gini index (measure of the model misclassification rate) was used as a criterion for importance. Day Status was the most important predictor according to the mean decrease accuracy index which means that exclusion of the day status predictor from the model would result in the highest decrease in accuracy. In comparison, age was the most important predictor according to the mean decrease gini index indicating that age results in the highest node purity, which signifies a low rate that a driver was mistakenly classified as drunk. Additionally IncomeToPovRatio and TotalPopulation were the next important predictors according to both the mean decrease accuracy and the mea decrease gini indices. 
   
+  Least important predictors in predicting the drunk driving incident included the driver's Sex, DeathSceneStatus and NumFatalities according to both mean decrease accuracy and mean decrease gini indices. Additionally driver's previous speeding and DWI convictions also do not appear to be important in predicting drunk driving incidence.
+
   
+#### Random Forest Assessment  
+
+
   
-  
+
 ## Discussion 
 
   
