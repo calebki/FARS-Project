@@ -70,7 +70,7 @@ The FARS dataset was cleaned to remove any observations with unreported sex, dru
 
 ## Results/Analysis
 
-The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set). Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors followed by random forest. Both models were then assessed via accuracy measured by cross validation and ROC curves. 
+The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set). Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors followed by random forest. Both models were built on the training data and then assessed on the test data via accuracy and ROC curves. 
 
 ### Logistic Regression 
 
@@ -105,10 +105,15 @@ Random forest model was also built in addition to logistic regression. Random fo
   
 #### Random Forest Assessment  
 
-
+Random Forest was also assessed via accuracy. The accuracy for the initial test and training split was 0.74. Cross-validation was then used to validate accuracy. K value of 100 was specified in cross-validation, indicating that the data was split in a test and training set 100 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.73. 
   
-
 ## Discussion 
+
+According to the results above, accident level attributes like the day status of crash and county level predictors like income to poverty ratio in the past 12 months and total population appear to be the most important predictors in predicting whether or not the driver is drunk. The day status predictor makes intuitive sense since people usually indulge in alcohol consumption at night, which could result in a higher incidence of drunk driving during the night. In regards to county level predictors, a more affluent county as indicated by a high income to poverty ratio may be more able to purchase and consume alcohol. High total population may be a confounding variable since there might naturally be an increase in the number of accidents as the population increases, irrelevant to the driver's drinking status. Age also appears to be an important predictor in drunk driving incidence such that an increase in age appears to decrease the odds of a driving being drunk. This result makes sense since older adults may engage less in risky behaviors like drunk driving. Police reported drug consumption is also a predictor of drunk driving since one may expect that individuals who consume alcohol and drunk drive may also pursue other risky behaviors like drug consumption. 
+
+  Driver's death scene status (whether the driver died at scene or enroute to a medical facility) does not seem to be a relevant predictor in predicting drunk driving incidence which indicates that the severity of the driver's injury as measured by the DeathSceneStatus predictor, does not appear to be correlated with the amount of alcohol consumed. Driver's sex also appears to be irrelevant in predicting drunk driving incidence. Number of fatalities is not an important variable indicating that the intensity of the crash as measured by the number of deaths in an accident does not predict the drunk driving incidence. Similalry previous speeding convictions and DWI convictions does not appear to be highly relevant indicating that individuals are not affected by their past actions and function in an unpredictable manner. 
+
+![](FARSLogistic4.png)
 
   
 ```{r}
@@ -260,7 +265,6 @@ for(i in 1:k)
 mean(acc)
 ```
 
-
 #Random Forest 
 ```{r}
 set.seed(1000)
@@ -283,11 +287,31 @@ test.forest = predict(modForest1, type = "prob", newdata = test)
 forestpred = prediction(test.forest[,2], test$DriverDrinking)
 forestperf = performance(forestpred, "tpr", "fpr")
 plot(perf, main="Random Forest ROC [Accuracy: 0.74]")
-conf <- modForest$confusion
+conf <- modForest1$confusion
 print(sum(diag(conf)) / sum(conf)) 
+
+dat <- mergeData
+k <- 2
+acc2 <- NULL
+set.seed(123)
+for(i in 1:k)
+{
+  smp_size <- floor(0.70 * nrow(dat))
+  index <- sample(seq_len(nrow(dat)),size=smp_size)
+  train <- dat[index, ]
+  test <- dat[-index, ]
+  modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
+                            PrevSpeeding + ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
+                            NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
+                            TotalPopulation, data = train, ntree = 100, mtry = 4, 
+                          keep.forest = TRUE, importance = FALSE)
+  conf <- modForest1$confusion
+  acc2[i] <- (sum(diag(conf)) / sum(conf))
+}
+mean(acc2)
 ```
 
-
-
- 
+##Check conditions for logistic regression 
+##Include screenshots to BigQuery 
+##Change cross validation to 100 above 
  
