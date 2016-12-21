@@ -272,13 +272,13 @@ FinalMerge2 <- FinalMerge2 %>% filter(Sex == '1' | Sex == '2')
 FinalMerge2$Sex <- droplevels(FinalMerge2$Sex)
 levels(FinalMerge2$Sex) <- c("Male", "Female")
 
-FinalMerge2 <- FinalMerge2 %>% filter(ReportedDrugs == '0' | ReportedDrugs == '1')
-FinalMerge2$ReportedDrugs <- droplevels(FinalMerge2$ReportedDrugs)
-levels(FinalMerge2$ReportedDrugs) <- c("No", "Yes")
+#FinalMerge2 <- FinalMerge2 %>% filter(ReportedDrugs == '0' | ReportedDrugs == '1')
+#FinalMerge2$ReportedDrugs <- droplevels(FinalMerge2$ReportedDrugs)
+#levels(FinalMerge2$ReportedDrugs) <- c("No", "Yes")
 
-FinalMerge2 <- FinalMerge2 %>% filter(DeathSceneStatus == '7' | DeathSceneStatus == '8')
-FinalMerge2$DeathSceneStatus <- droplevels(FinalMerge2$DeathSceneStatus)
-levels(FinalMerge2$DeathSceneStatus) <- c("DiedAtScence", "DiedAtEnroute")
+#FinalMerge2 <- FinalMerge2 %>% filter(DeathSceneStatus == '7' | DeathSceneStatus == '8')
+#FinalMerge2$DeathSceneStatus <- droplevels(FinalMerge2$DeathSceneStatus)
+#levels(FinalMerge2$DeathSceneStatus) <- c("DiedAtScence", "DiedAtEnroute")
 
 #Creating weekend/weekday predictor 
 FinalMerge2 <- FinalMerge2 %>%
@@ -299,8 +299,8 @@ train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
 logmod <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + 
-                PrevDWIConvictions + PrevSpeeding + ReportedDrugs + VehicleSpeed 
-              + DeathSceneStatus + NumFatalities + WeekdayStatus + DayStatus + 
+                PrevDWIConvictions + PrevSpeeding + VehicleSpeed + 
+                NumFatalities + WeekdayStatus + DayStatus + 
                 IncomeToPovRatio + TotalPopulation,
               family=binomial(link='logit'), data = train)
 
