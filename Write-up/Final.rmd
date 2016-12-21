@@ -299,10 +299,11 @@ train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 
 logmod <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + 
-                PrevDWIConvictions + PrevSpeeding + VehicleSpeed + 
+                PrevDWIConvictions + PrevSpeeding + 
                 NumFatalities + WeekdayStatus + DayStatus + 
                 IncomeToPovRatio + TotalPopulation,
               family=binomial(link='logit'), data = train)
+save(logmod, file = "logisticmod.Rda")
 
 logTable <- tidy(logmod)
 logTable <- logTable %>% mutate(ExpEstimate = exp(estimate))
