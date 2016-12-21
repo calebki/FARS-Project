@@ -89,19 +89,19 @@ The dataset was then split in test and training sets with a 70/30 split (70% dat
 
 Predictors accounting for the driver's previous suspensions and revocations, previous DWI convictions, previous speeding convictions, reported drug use, vehicle speed, death enroute to a medical facility, weekend, nighttime and total population all increased the odds of driver being drunk. 
 
-  The coefficient for PrevSuspensions indicates that holding other variables constant, the odds of a driver involved in a fatal accident being drunk increase by 1.07 given an increase in the previous suspension record by one. Coefficient for PreDWIConvictions indicates that an increase in the previous DWI convictions by one produces an increase in the odds of the driver being drunk by about 1.05 holding other variables fixed. In regards to police reported drug involvement, the odds of a driver being drunk given police reported drug use by the driver is about 2.32 higher than the odds of the driver being drunk given no police reported drug use.
+  The coefficient for PrevSuspensions indicates that holding other variables constant, the odds of a driver involved in a fatal accident being drunk increase by 1.04 given an increase in the previous suspension record by one. Coefficient for PreDWIConvictions indicates that an increase in the previous DWI convictions by one produces an increase in the odds of the driver being drunk by about 1.22 holding other variables fixed. In regards to police reported drug involvement, the odds of a driver being drunk given police reported drug use by the driver is about 2.47 higher than the odds of the driver being drunk given no police reported drug use.
     
-The odds of a driver being drunk are about 1.00 higher given a one unit increase in the vehicle speed holding other variables constant. There is about a 1.45 higher odds of a driver being drunk if the driver dies enroute to a medical facility than if the driver dies at scene of accident. If the day of crash is a weekend, then there is about a 1.93 odds of a drunk driver incidence in comparison to is the crash occurred on a weekday. If the time occurred during night, then there is about a 5.08 odds of the driver being drunk than if the crash occurred during the day. Lastly the odds of a drunk driver increase by about 1.00 given a one unit increase in the total population holding other variables fixed. 
+The odds of a driver being drunk are about 1.00 higher given a one unit increase in the vehicle speed holding other variables constant. There is about a 1.27 higher odds of a driver being drunk if the driver dies enroute to a medical facility than if the driver dies at scene of accident. If the day of crash is a weekend, then there is about a 1.96 odds of a drunk driver incidence in comparison to is the crash occurred on a weekday. If the time occurred during night, then there is about a 5.01 odds of the driver being drunk than if the crash occurred during the day. Lastly the odds of a drunk driver increase by about 1.00 given a one unit increase in the total population holding other variables fixed. 
 
 #### Predictors associated with decreased drunk driving incidence
 
 Predictors like the driver's sex, age, history of previous speeding suspensions, number of fatalities and income to poverty ratio all decreased the odds of a driver being drunk. 
 
-  The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.64 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.98 higher given a one year increase in age. Variable for PrevSpeeding indicates that holding other variables constant, the odds of a driver being drunk are 0.90 higher given an increase in previous speeding suspensions of one holding other variables constant. In regards to NumFatalities, the odds of a driver being drunk are about 0.79 higher iwith an increase in the number of fatalities by one. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased chance of odds of the driver being drunk. 
+  The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.60 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.98 higher given a one year increase in age. Variable for PrevSpeeding indicates that holding other variables constant, the odds of a driver being drunk are 0.78 higher given an increase in previous speeding suspensions of one holding other variables constant. In regards to NumFatalities, the odds of a driver being drunk are about 0.70 higher iwith an increase in the number of fatalities by one. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased chance of odds of the driver being drunk. 
 
 #### Logistic Regression Assessment
 
-Logistic regression was assessed with model accuracy. Initial model accuracy was about 0.76 and then cross validation with k = 100 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about 0.72. 
+Logistic regression was assessed with model accuracy. Initial model accuracy was about 0.77 and then cross validation with k = 100 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about 0.72. 
 
 ### Random Forest 
 
@@ -116,7 +116,7 @@ Random forest model was also built in addition to logistic regression. Random fo
   
 #### Random Forest Assessment  
 
-Random Forest was also assessed via accuracy. The accuracy for the initial test and training split was 0.74. Cross-validation was then used to validate accuracy. K value of 100 was specified in cross-validation, indicating that the data was split in a test and training set 100 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.73. 
+Random Forest was also assessed via accuracy. The accuracy for the initial test and training split was 0.72. Cross-validation was then used to validate accuracy. K value of 100 was specified in cross-validation, indicating that the data was split in a test and training set 100 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.73. 
   
 ## Discussion 
 
@@ -186,7 +186,7 @@ data9 <- data8
 
 ACS <- load("CensusFinalD1.Rda")
 CensusFinalD1$FIPSCode <- as.factor(CensusFinalD1$FIPSCode)
-FinalMerge2<- CensusFinalD1 %>% right_join(data9, by = "FIPSCode") #40422 observations
+FinalMerge2 <- CensusFinalD1 %>% right_join(data9, by = "FIPSCode") #40422 observations
 FinalMerge2 <- na.omit(FinalMerge2)
 
 ########Build training and test models here
@@ -220,7 +220,7 @@ FinalMerge2 <- FinalMerge2 %>%
 FinalMerge2$WeekdayStatus <- as.factor(FinalMerge2$WeekdayStatus)
 
 FinalMerge2 <- FinalMerge2 %>%
-  mutate(DayStatus = ifelse(A_HOUR < 6 | A_HOUR > 18, "Night", "Day"))
+  mutate(DayStatus = ifelse(A_HOUR < 6 | A_HOUR >= 18, "Night", "Day"))
 FinalMerge2$DayStatus <- as.factor(FinalMerge2$DayStatus)
 
 test <- FinalMerge2 %>% select(A_HOUR, DayStatus, A_DAY_WEEK, WeekdayStatus) #6908 observations in total 
