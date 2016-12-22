@@ -461,7 +461,6 @@ levels(FinalData$Sex) <- c("Male", "Female")
 #all values coded as missing 
 FinalData <- FinalData %>% filter(Age < 99)
 FinalData <- FinalData %>% filter(PrevDWIConvictions < 99)
-FinalData <- FinalData %>% filter(PrevSpeeding < 99)
 FinalData <- FinalData %>% filter(PrevSuspensions < 99)
 
 #Creating weekend/weekday predictor 
@@ -472,9 +471,8 @@ FinalData$WeekdayStatus <- as.factor(FinalData$WeekdayStatus)
 FinalData <- FinalData %>%
   mutate(DayStatus = ifelse(A_HOUR < 6 | A_HOUR >= 18, "Night", "Day"))
 FinalData$DayStatus <- as.factor(FinalData$DayStatus)
-Update <- FinalData
-
-#save(Update, file = "FinalDataUpdate.Rda")
+Update1 <- FinalData
+save(Update1, file = "FinalDataUpdate.Rda")
 ```
 
 
