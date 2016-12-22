@@ -61,7 +61,8 @@ vars8 <- c(
 vars9 <- c(
   "Actual" = "actual",
   "Expected" = "expected",
-  "Difference" = "difference"
+  "Difference" = "difference",
+  "Difference Scaled" = "difference2"
 )
 
 shinyUI(navbarPage("FARS", id = "nav",

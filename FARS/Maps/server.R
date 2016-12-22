@@ -197,7 +197,8 @@ shinyServer(function(input, output) {
           mutate(value = value / (population/100000))
       }
       county_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes") +
-        scale_fill_brewer(palette = 2, na.value = "gray71")
+        scale_fill_brewer(palette = 2, na.value = "gray71") +
+        labs(title = "Number of Accidents")
     }
     
     else {
@@ -217,7 +218,8 @@ shinyServer(function(input, output) {
       }
       
       state_choropleth(numAccidents, zoom = z, legend = "Number of Crashes") +
-        scale_fill_brewer(palette = 2, na.value = "gray71")
+        scale_fill_brewer(palette = 2, na.value = "gray71") +
+        labs = ("Number of Accidents")
     }
 
   })
@@ -272,20 +274,33 @@ shinyServer(function(input, output) {
     
     if(displaytype() == "actual") {
       county_choropleth(actual, state_zoom = z, legend = "Number of Drunk Drivers") +
-        scale_fill_brewer(palette = 2, na.value = "gray71")
+        scale_fill_brewer(palette = 2, na.value = "gray71") +
+        labs(title = "Actual Number of Drunk Drivers")
     }
       
     else if(displaytype() == "expected") {
       county_choropleth(expected, state_zoom = z, legend = "Number of Drunk Drivers") +
-        scale_fill_brewer(palette = 2, na.value = "gray71")  
+        scale_fill_brewer(palette = 2, na.value = "gray71") +
+        labs(title = "Expected Number of Drunk Drivers")
     }
     
     else {
       difference <- left_join(actual, expected, by = "region") %>% 
         mutate(value = value.x - value.y)
       
-      county_choropleth(difference, state_zoom = z, legend = "Expected Number of Drunk Drivers - Actual") +
-        scale_fill_brewer(palette = "GnBu", na.value = "gray71")
+      if(displaytype() == "difference2") {
+        difference <- difference %>% mutate(value = value/value.x)
+        county_choropleth(difference, state_zoom = z, legend = "Expected - Actual") +
+          scale_fill_brewer(palette = "PRGn", na.value = "gray71") +
+          labs(title = "(Actual - Expected)/Actual Number of Drunk Drivers")
+      }
+      
+      else {
+        county_choropleth(difference, state_zoom = z, legend = "Expected - Actual") +
+          scale_fill_brewer(palette = "PRGn", na.value = "gray71") +
+          labs(title = "Actual - Expected Number of Drunk Drivers")
+      }
+
     }
     
   })
