@@ -29,6 +29,8 @@ library(broom)
 library(ROCR)
 library(tidyr)
 library(data.table)
+library(xtable)
+require(tidyr)
 
 # Some customization.  You can alter or delete as desired (if you know what you are doing).
 trellis.par.set(theme=theme.mosaic()) # change default color scheme for lattice
@@ -148,35 +150,17 @@ test <- shuffled[(round(0.7 * n) + 1):n,]
 
 Binary dependent response variable (drunk or not drunk) was used, which satisfies the condition that response variable be dichotomous for binary logistic regression. A correlation matrix was used to assess whether the quantitative explanatory variables (Age, PrevSuspensions, PrevDWIConvictions, NumFatalities, IncomeToPovRatio and TotalPopulation) were independent or had some underlying unaccounted dependence structure. As the correlation matrix shows below, there does not appear to be much correlation between the explanatory predictors aside from the correlation between total population and income to poverty ratio variables, which seems understandable given that a county with a high total population may have a high income to poverty ratio. Therefore the explanatory predictors mostly satisfied the independence assumption. 
 
-```{r}
+```{r results = "asis"}
 modelAssess <- Update1 %>% dplyr::select(Age, PrevSuspensions, PrevDWIConvictions,
                                          NumFatalities, IncomeToPovRatio, TotalPopulation)
 modelAssess$NumFatalities <- as.numeric(modelAssess$NumFatalities)
-cor(modelAssess)
+corTable <- cor(modelAssess)
+print(xtable(corTable, caption = 'Assessing Independence with Correlation', caption.placement = 'top'))
 ```
 
+Next we assessed the linearity assumption of logistic regression. Linearity assumption was satisfied for binary predictors like Sex, WeekdayStatus and DayStatus. For quantitative predictors, empirical logit plots were used to assess linearity. As the plots show, linearity assumption is mostly satisfied for these predictors. PrevDWIConvictions and PrevSuspensions predictors show some deviation from normality though the deviation is not especially great. 
 
-Next we assessed the linearity 
 ```{r}
-FinalData <- Update1
-par(mfrow=c(2,3))
-favstats(FinalData$PrevDWIConvictions)
-FinalData$DriverDrinking <- as.numeric(FinalData$DriverDrinking)
-FinalData$DriverDrinking <- as.numeric(FinalData$DriverDrinking)
-FinalData$DriverDrinking[FinalData$DriverDrinking == 1] <- 0
-FinalData$DriverDrinking[FinalData$DriverDrinking == 2] <- 1
-
-emplogit(FinalData$Age, FinalData$DriverDrinking)
-title(sub = "Age")
-emplogit(FinalData$PrevDWIConvictions, FinalData$DriverDrinking)
-title(sub = "PrevDWIConvictionc")
-emplogit(FinalData$PrevSuspensions, FinalData$DriverDrinking)
-title(sub = "PrevSuspensions")
-emplogit(FinalData$TotalPopulation, FinalData$DriverDrinking)
-title(sub = "TotalPopulation")
-emplogit(FinalData$IncomeToPovRatio, FinalData$DriverDrinking)
-title(sub = "IncomeToPovRatio")
-
 emplogit = function(x, y, binsize = NULL, ci = FALSE, probit = FALSE,
                     prob = FALSE, main = NULL, xlab = "", ylab = ""){
   if (length(x) != length(y))
@@ -226,12 +210,32 @@ emplogit = function(x, y, binsize = NULL, ci = FALSE, probit = FALSE,
     abline(b0,b1)
     lines(loess.fit$x, loess.fit$fitted, lwd=2, lty=2)
 }
+
+FinalData <- Update1
+par(mfrow=c(2,3))
+favstats(FinalData$PrevDWIConvictions)
+FinalData$DriverDrinking <- as.numeric(FinalData$DriverDrinking)
+FinalData$DriverDrinking <- as.numeric(FinalData$DriverDrinking)
+FinalData$DriverDrinking[FinalData$DriverDrinking == 1] <- 0
+FinalData$DriverDrinking[FinalData$DriverDrinking == 2] <- 1
+
+emplogit(FinalData$Age, FinalData$DriverDrinking)
+title(sub = "Age")
+emplogit(FinalData$PrevDWIConvictions, FinalData$DriverDrinking)
+title(sub = "PrevDWIConvictionc")
+emplogit(FinalData$PrevSuspensions, FinalData$DriverDrinking)
+title(sub = "PrevSuspensions")
+emplogit(FinalData$TotalPopulation, FinalData$DriverDrinking)
+title(sub = "TotalPopulation")
+emplogit(FinalData$IncomeToPovRatio, FinalData$DriverDrinking)
+title(sub = "IncomeToPovRatio")
 ```
 
+Lastly, logistic regression also demands independence between observations. Given that we are incorporating county level data, it may be the case that drivers from a particular county may have similar driving and drunk driving experience based on the rules and regulations enforced by that county. Therefore some correlation at the county level may be present, which our model does not fully account for (see the Limitations and Future Work section for further explication on the issue). 
 
 ### Test and Training Sets
 
-The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set) where the training set had 27,678 observations while the test set had 11,862 observations. Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors followed by random forest. Both models were built on the training data and then assessed on the test data via accuracy and ROC curves.
+The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set) where the training set had 27,214 observations while the test set had 11,663 observations. Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors followed by random forest. Both models were built on the training data and then assessed on the test data via accuracy and ROC curves.
 
 ### Results and Model Analysis
 
@@ -239,22 +243,22 @@ The dataset was then split in test and training sets with a 70/30 split (70% dat
 
 Predictors accounting for the driver's previous suspensions and revocations, previous DWI convictions, number of fatalities in the accident, the day of the crash being a weekend and time being night and total population all increase the odds of a driver being drunk. 
 
-  Exponential of the coefficient estimates was assessed in the column labeled ExpEstimate (since logistic model is used, exponentiating the coefficients allows for a more intuitive interpretation). The coefficient for PrevSuspensions indicates that holding other variables constant, the odds of a driver involved in a fatal accident being drunk increase by 1.09 given an increase in the previous suspension record by one. Coefficient for PreDWIConvictions indicates that an increase in the previous DWI convictions by one produces an increase in the odds of the driver being drunk by about 1.03 holding other variables fixed. 
+  Exponential of the coefficient estimates was assessed in the column labeled ExpEstimate (since logistic model is used, exponentiating the coefficients allows for a more intuitive interpretation). The coefficient for PrevSuspensions indicates that holding other variables constant, the odds of a driver involved in a fatal accident being drunk increase by 1.04 given an increase in the previous suspension record by one. Coefficient for PreDWIConvictions indicates that an increase in the previous DWI convictions by one produces an increase in the odds of the driver being drunk by about 2.74 holding other variables fixed. 
   
-  In regards to accident and county level attributes, increase in number of fatalities by one inceases the odds of a driver involved in fatal accident being drunk by about 1.03. If the day of crash is a weekend, then there is about a 1.88 odds of a drunk driver incidence in comparison to if the crash occurred on a weekday. If the time occurred during night, then there is about a 3.96 odds of the driver being drunk than if the crash occurred during the day. Lastly the odds of a drunk driver increase by about 1.00 given a one unit increase in the total population holding other variables fixed. 
+  In regards to accident and county level attributes, increase in number of fatalities by one inceases the odds of a driver involved in fatal accident being drunk by about 1.02. If the day of crash is a weekend, then there is about a 1.96 odds of a drunk driver incidence in comparison to if the crash occurred on a weekday. If the time occurred during night, then there is about a 4.01 odds of the driver being drunk than if the crash occurred during the day. Lastly the odds of a drunk driver increase by about 1.00 given a one unit increase in the total population holding other variables fixed. 
 
 #### Predictors associated with decreased drunk driving incidence
 
 Predictors like the driver's sex, age, history of previous speeding suspensions, number of fatalities and income to poverty ratio all decreased the odds of a driver being drunk. 
 
-  The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.56 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.99 higher given a one year increase in age. Variable for PrevSpeeding indicates that holding other variables constant, the odds of a driver being drunk are 0.89 higher given an increase in previous speeding suspensions of one holding other variables constant. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased chance of odds of the driver being drunk. 
+  The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 0.56 odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 0.98 higher given a one year increase in age. Lastly an increase in income to poverty ratio of one is associated with a 0.99 increased odds of the driver being drunk. 
   
 ```{r}
 logmodnew <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + 
                 PrevDWIConvictions + NumFatalities + WeekdayStatus + DayStatus + 
                 IncomeToPovRatio + TotalPopulation,
               family=binomial(link='logit'), data = train)
-#save(logmodnew, file = "logisticmodFinal.Rda")
+save(logmodnew, file = "logisticmodFinal.Rda")
 logmod <- logmodnew 
 logTable <- tidy(logmod)
 logTable <- logTable %>% mutate(ExpEstimate = exp(estimate))
@@ -268,19 +272,9 @@ logTable  #added exponentiated estimate column in the model summary
 
 ### Logistic Regression Model Accuracy 
 
-Logistic regression was assessed with model accuracy. Initial model accuracy was about 0.74 and then cross validation with k = 100 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about about 0.82. 
+Logistic regression was assessed with model accuracy. Cross validation with k = 100 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about about 0.81. 
 
 ```{r}
-prob <- predict(logmod, newdata=test, type="response")
-pred <- prediction(prob, test$DriverDrinking)
-perf <- performance(pred, measure = "tpr", x.measure = "fpr")
-plot(perf)
-
-#Accuracy assessment 
-auc <- performance(pred, measure = "auc")
-auc <- auc@y.values[[1]]
-auc #75% accurate 
-
 #Cross-validation for model assessment 
 dat <- FinalData
 k <- 100
@@ -311,41 +305,29 @@ mean(acc)
 
 #### Variable Importance 
 
-In addition to logistic regression, random forest was built to assess variable importance. Random forest is an ensemble modeling approach where output from many bootstrapped decision trees is aggregated to provide an estimate. About 100 trees were grown for the random forest model and the same predictors were regressed to predict drunk driving incidence as used for the logistic regression (Sex, Age, PrevDWIConvictions, PrevSpeeding, PrevSuspensions, NumFatalities, WeekdayStatus, DayStatus, TotalPopulation, IncomeToPovRatio). 
+In addition to logistic regression, random forest was built to assess variable importance. Random forest is an ensemble modeling approach where output from many bootstrapped decision trees is aggregated to provide an estimate. About 100 trees were grown for the random forest model and the same predictors were regressed to predict drunk driving incidence as used for the logistic regression (Sex, Age, PrevDWIConvictions, PrevSuspensions, NumFatalities, WeekdayStatus, DayStatus, TotalPopulation, IncomeToPovRatio). 
 
-  Variable importance plot was constructed to assess which features are highly predictive in forecasting drunk driving incidence. Mean decrease in accuracy and mean decrease in gini index (measure of the model misclassification rate) were used to assess importance. County level income to poverty ratio was the most important predictor according to the mean decrease accuracy index which means that exclusion of this predictor from the model would result in the highest decrease in accuracy. In comparison, total population was the most important predictor according to the mean decrease gini index indicating that total population results in the highest node purity, which signifies a low rate of misclassifying the driver as drunk. Additionally day status and previous speeding convictions and suspension history were the next important predictors according to both the mean decrease accuracy and the mea decrease gini indices. 
+  Variable importance plot was constructed to assess which features are highly predictive in forecasting drunk driving incidence. Mean decrease in accuracy and mean decrease in gini index (measure of the model misclassification rate) were used to assess importance. County level income to poverty ratio was the most important predictor according to the mean decrease accuracy index which means that exclusion of this predictor from the model would result in the highest decrease in accuracy. In comparison, total population was the most important predictor according to the mean decrease gini index indicating that total population results in the highest node purity, which signifies a low rate of misclassifying the driver as drunk. Additionally day status and previous driving suspension history were the next important predictors according to both the mean decrease accuracy and the mean decrease gini indices. 
   
-  Least important predictors in predicting the drunk driving incident included the driver's sex and number of fatalities according to both mean decrease accuracy and mean decrease gini indices. 
+  Least important predictors in predicting the drunk driving incident included the driver's sex and number of fatalities according to both mean decrease accuracy and mean decrease gini indices. Weekday status also does not appear to be a very informative predictor in predicting drunk driving incidence. 
   
 ```{r}
 set.seed(1000)
+train$DriverDrinking <- as.factor(train$DriverDrinking)
 modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
-                          PrevSpeeding + NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
+                          NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
                           TotalPopulation, data = train, ntree = 100, mtry = 4, 
                         keep.forest = TRUE, importance = TRUE)
-save(modForest, file = "modForest.Rda")
+#save(modForest, file = "modForest.Rda")
 #Importance plots  
 varImpPlot(modForest)
 ```
 
-
 ### Random Forest Model Assessment  
 
-Random Forest was also assessed via accuracy. The accuracy for the initial test and training split was 0.81. Cross-validation was then used to validate accuracy. K value of 50 was specified in cross-validation, indicating that the data was split in a test and training set 50 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.83. 
+Random forest model was assessed with accuracy validated through cross-validation. K value of 50 was specified in cross-validation, indicating that the data was split in a test and training set 50 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.81. 
 
 ```{r}
-modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
-                            NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
-                            TotalPopulation, data = train, ntree = 100, mtry = 4, 
-                          keep.forest = TRUE, importance = TRUE)
-
-test.forest = predict(modForest1, type = "prob", newdata = test)
-forestpred = prediction(test.forest[,2], test$DriverDrinking)
-forestperf = performance(forestpred, "tpr", "fpr")
-plot(perf, main="Random Forest ROC [Accuracy: 0.74]")
-conf <- modForest1$confusion
-print(sum(diag(conf)) / sum(conf)) 
-
 dat <- FinalData
 k <- 50
 acc2 <- NULL
@@ -357,7 +339,6 @@ for(i in 1:k)
   train <- dat[index, ]
   test <- dat[-index, ]
   modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
-                            ReportedDrugs + VehicleSpeed + DeathSceneStatus + 
                             NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
                             TotalPopulation, data = train, ntree = 100, mtry = 4, 
                           keep.forest = TRUE, importance = FALSE)
@@ -367,11 +348,21 @@ for(i in 1:k)
 mean(acc2)
 ```
 
-  
+### Logistic Regression and Random Forest 
+
+Lastly the Receiver Operating Curve (ROC) was used to compare both logistic regression and random forest models. 
+
+```{r}
+
+
+
+```
+
+
+
 ## Discussion 
 
-According to the results above, county level predictors like income to poverty ratio in the past 12 months and total population appear to be the most important predictors in predicting whether or not the driver is drunk. In regards to county level predictors, a more affluent county as indicated by a high income to poverty ratio may be more able to purchase and consume alcohol. High total population may be a confounding variable since there might naturally be an increase in the number of accidents as the population increases, irrelevant to the driver's drinking status. Additionally day status predictor is important, which seems intuitive since alcohol consumption typically occurs at night, resulting in increased drunk driving incidence during the night. Previous speeding suspensions and convictions appear to be somewhat important in predicting drunk driving incidence. 
-
+According to the results above, county level predictors like income to poverty ratio in the past 12 months and total population appear to be the most important predictors in predicting whether or not the driver is drunk. In regards to county level predictors, a more affluent county as indicated by a high income to poverty ratio may be more able to purchase and consume alcohol. High total population may be a confounding variable since there might naturally be an increase in the number of accidents as the population increases, irrelevant to the driver's drinking status. Additionally day status predictor is important, which seems intuitive since alcohol consumption typically occurs at night, resulting in increased drunk driving incidence during the night. Previous suspensions and DWI convictions appear to be somewhat important in predicting drunk driving incidence. 
 
   Driver's sex does not appear to be relevant in predicting drunk driving incidence. Number of fatalities is not an important variable indicating that the intensity of the crash as measured by the number of deaths in an accident does not predict the drunk driving incidence. 
   
@@ -381,9 +372,7 @@ There are a few important limitations to our work. First, the FARS dataset only 
 
 There are several natural extensions of this project that can be taken. We only included data from the year 2015 in our current analysis but would like to include additional years in consideration. Since we only included observations from counties where there were at least 10 fatal accidents, by adding more observations from different years, more counties could have been included in the analysis. Additionally, a different set of questions could have been answered by adding more years. For example, as indicated in the motivation/introduction section, there was an increase in the number of fatal traffic accidents (both overall and alcohol induced). By adding more years, one could try to ascertain why 2015 saw an increase in fatal accidents when previous years observed a decrease. 
 
-###This future work extension below is slightly confusing, maybe elaborate a bit?
-Another extension, is adapting the model so that it fits at an accident or county level. In order to get county estimates, we used a driver level model and aggregated the predictions. How would the model change if we only fit at a county level?
-
+In our current model, we aggregated individual level driver attributes like age and sex to allow for modeling the county level estimates. Future exploration could include analyzing how the model estimates change if the data is only fit at a county level instead of an aggregation from an individual level. 
 
 #ACS Dataset 
 ```{r eval = FALSE}
@@ -517,7 +506,5 @@ FinalData$DayStatus <- as.factor(FinalData$DayStatus)
 
 #save(FinalData, file = "FinalData.Rda")
 ```
-
-
 
  
