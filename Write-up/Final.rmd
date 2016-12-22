@@ -1,7 +1,7 @@
 ---
-title: "Final Write-Up"
+title: "Predicting Drunk Driving Incidents"
 author: "Azka Javaid  & Caleb Ki"
-date: "December 19, 2016"
+date: "December 22, 2016"
 output: 
   pdf_document:
     fig_height: 3
@@ -16,6 +16,7 @@ output:
 
 ```{r, setup, include=FALSE}
 # Load additional packages here 
+options(warn = -1)
 library(acs)
 library(plyr)
 library(mlbench)
@@ -35,17 +36,18 @@ trellis.par.set(theme=theme.mosaic()) # change default color scheme for lattice
 knitr::opts_chunk$set(
   tidy=FALSE,     # display code as typed
   size="drivers")   # slightly driverser font for code
+options(xtable.comment = FALSE)
 ```
 
 ## Introduction
 
-In 2015, 35092 people died in motor vehicle accidents according to the \href{https://crashstats.nhtsa.dot.gov/Api/Public/ViewPublication/812318}{National Highway Traffic Safety Association (NHTSA).} This is an increase of 2348 fatalities from 2014. Part of the reason that there was an increase in the number of fatal traffic accidents overall is that the number of fatal traffic accidents involving alcohol impaired drivers increased by 322. This increase in the number of fatal traffic accidents involving drunk drivers is important because \href{https://www.cdc.gov/motorvehiclesafety/impaired_driving/impaired-drv_factsheet.html}{CDC} reports that around 31% of traffic fatalities include a drunk driver and that alcohol impaired vehicle accidents cost around $44 billion. Of course the primary concern with the increase in drunk driving fatalities is the increased loss of life, but these accidents also have detrimental monetary implications as well.
+In 2015, 35,092 people died in motor vehicle accidents according to the \href{https://crashstats.nhtsa.dot.gov/Api/Public/ViewPublication/812318}{National Highway Traffic Safety Association (NHTSA).} This is an increase of 2,348 fatalities from 2014. Part of the reason that there was an increase in the number of fatal traffic accidents overall is that the number of fatal traffic accidents involving alcohol impaired drivers increased by 322. This increase in the number of fatal traffic accidents involving drunk drivers is important because \href{https://www.cdc.gov/motorvehiclesafety/impaired_driving/impaired-drv_factsheet.html}{CDC} reports that around 31% of traffic fatalities include a drunk driver and that alcohol impaired vehicle accidents cost around $44 billion. Of course the primary concern with the increase in drunk driving fatalities is the increased loss of life, but these accidents also have detrimental monetary implications as well.
 
 Although the dangers of drunk driving are well documented at an individual level, the risk factors associated with drunk driving are generally not well known at an aggregate level. There is relatively little literature exploring why there are large discrepancies in rate of drunk driving between different U.S. counties. For example, in 2015, Fremont County, Wyoming, had 27 fatal traffic accidents involving alcohol per 100,000 people whereas the same statistic for Morris County, New Jersey is only 0.2. This difference in drunk driving incidence between the two counties is vast though there is little understanding of how and why these disparities are accentuated based on socioeconomic differences or additional factors. 
 
-Identifying risk factors associated with drunk driving could help develop intervention methods. More specifically, if individual level risk factors can be determined then we know who to target with precautionary tales about drunk driving. On a separate note educational programs can be developed for the general public to spread awareness about how drunk drivers behave (Do they drive more at night? Do they drive more during the weekends?) equipping citizens with the knowledge to better avoid drunk drivers. Moreover pinpointing county level disparities in drunk driving related accidents could lead to geographic level government policy implementations like increased budget allocation to spread awareness about safe driving practices in counties with high rates of drunk driving and fatalities. 
+Identifying risk factors associated with drunk driving could help develop intervention methods. More specifically, if individual level risk factors can be determined then we know who to target with drunk driving precaution campaign. On a separate note educational programs can be developed for the general public to spread awareness about how drunk drivers behave (Do they drive more at night? Do they drive more during the weekends?) equipping citizens with the knowledge to better avoid drunk drivers. Moreover pinpointing county level disparities in drunk driving related accidents could lead to geographic level government policy implementations like increased budget allocation to spread awareness about safe driving practices in counties with high rates of drunk driving and fatalities. 
 
-In this project, we plan to determine what factors at individual and county level predict whether or not the driver involved in a fatal traffic accident was alcohol impaired. Individual level predictors include driver's sex, age, past driving related convictions. County level predictors of interest include population and income to poverty ratio. Lastly, we also analyze accident level attribute like time of day and week status (weekday/weekend) in potentially explaning drunk driving incidence related to fatal accidents. 
+In this project, we plan to determine what factors at individual and county level predict whether or not the driver involved in a fatal traffic accident was alcohol impaired. Individual level predictors include driver's sex, age and past driving related convictions. County level predictors of interest include population and income to poverty ratio. Lastly, we also analyze accident level attribute like time of day, week status (weekday/weekend) and number of fatalities in the crash in potentially explaning drunk driving incidence related to fatal accidents. 
 
 ## Data
 
@@ -57,29 +59,29 @@ The second and supplementary source of data came from the American Community Sur
 
 ### BigQuery 
 
-We used Google's BigQuery as a hosting platform for our datasets. BigQuery is an analytics warehouse with the ability to process data on the petabyte scale. It provides a serverless and infrastructure-less environment through its cloud data storage, thereby further reducing the need for a database administrator. Its features include the ability to ingest data from different sources including Google Cloud Storage, Cloud Datastore, and livestream. Data can be read and written via Cloud Dataflow, Spark, and Hadoop and exported out in the Cloud. A key feature of BigQuery is the ability to collaborate and share queries as well as data by adding members to a project. Since we used accident, vehicle and person level data, BigQuery provided a cohesive and structured environment for managing all three. Additionally the user-friendly interface was conducive to basic exploratory analysis with SQL as well as for performing variety of joins. 
+We used Google's BigQuery as a hosting platform for our datasets. BigQuery is an analytics warehouse with the ability to process data on the petabyte scale accessible at \href{https://cloud.google.com/bigquery/}{here}. It provides a serverless and infrastructure-less environment through its cloud data storage, thereby further reducing the need for a database administrator. Its features include the ability to ingest data from different sources including Google Cloud Storage, Cloud Datastore, and livestream. Data can be read and written via Cloud Dataflow, Spark, and Hadoop and exported out in the Cloud. A key feature of BigQuery is the ability to collaborate and share queries as well as data by adding members to a project. Since we used accident, vehicle and person level data, BigQuery provided a cohesive and structured environment for managing all three. Additionally the user-friendly interface was conducive to basic exploratory analysis with SQL as well as for performing variety of joins. 
 
-  Most basic and preliminary use of BigQuery entails navigating between two environments: Google BigQuery and Google Cloud Platform. Data can be uploaded in BigQuery by first creating a project and enabling both billing and the BigQuery API. Once a project is created, datasets can be added from the 'create a new dataset drop down option' on the highlighted project (available on the left side of the inteface). After specifying a dataset, it is populated by tables of interest. The specification of the table entails defining a schema (structure or data skeleton), which involves defining the variable names as well the data types for each variable as shown by Figure 1. 
+  Most basic and preliminary use of BigQuery entails navigating between two environments: Google BigQuery and Google Cloud Platform (accesible at \href{https://cloud.google.com/storage/}{here}). Data can be uploaded in BigQuery by first creating a project and enabling both billing and the BigQuery API. Once a project is created, datasets can be added from the 'create a new dataset drop down option' on the highlighted project (available on the left side of the inteface). After specifying a dataset, it is populated by tables of interest. The specification of the table entails defining a schema (structure or data skeleton), which involves defining the variable names as well the data types for each variable as shown by Figure 1. 
   
   
-![Figure 1](CreateTable.png)
+![Google BigQuery Interface for Creating Table](CreateTable.png)
   
 Once the data is exported in a table, it can be previewed and queried through the 'compose query tab' on the left (see Figure 2). 
 
   
-![Figure 2](QueryTablePreview.png) 
+![BigQuery Interface for Queries](QueryTablePreview.png) 
   
   After the data is queried, the resulting table can be exported out to the Cloud by first creating a bucket from the Cloud console. Buckets can be created by selecting the Storage option from the main Cloud Platform console page. After a bucket is created, the queried data can be exported to that bucket with the name of the bucket and filename specified in format: gs://tablejoin/accident.csv where tablejoin is the name of the folder and accident is the name of the csv formatted table (see Figure 3).
   
-![Figure 3](StorageBucket.png)
+![Google Cloud Platform for Storing Data](StorageBucket.png)
   
   BigQuery has additional features worth highlighting like the publicly available datasets, which include the National Oceanic and Atmospheric Administration (NOAA) global data obtained from the USAF Climatology Center, US Disease Surveillance data from the CDC, NYC Taxi and Limousine Commission (TLC) Trip Data and GDELT Internet Archive Book Data. 
   
 ## FARS/ACS datasets 
 
-The FARS dataset was cleaned to remove any observations with unreported sex, previous DWI conviction, previous suspensions, and age. Observations with nonsensical values were also removed. There were observations where the driver was listed at 500 and 600 years old which of course is impossible. Other implausible outliers included a driver with over 40 previous suspensions. As someone gets in more and more trouble with the law, the punishments escalate and licenses are generally revoked before 40 suspensions are given. 
+The FARS dataset was cleaned to remove any observations with unreported sex, previous DWI conviction, previous suspensions, and age. Observations with nonsensical values were also removed. An example of this is an observation where the driver was listed at 500 and 600 years old which of course is impossible. Other implausible outliers included a driver with over 40 previous suspensions. As someone gets in more and more trouble with the law, the punishments escalate and licenses are generally revoked before 40 suspensions are given. 
 
-  A FIPS code column was created and used as the basis for joining the FARS and the ACS datasets so that each driver is matched with the county and state aggregate population and income to poverty ratio measures. We also created weekday and day status predictors. The data given from FARS already had information about the day of the week the accident occurred as well as the time. When dayweek, the variable for day of the week equaled 1 it meant Sunday and when it equaled 7 it meant Saturday so the weekend variable was coded simply to be a binary indicator of weekend using the day of week variable. We coded night for if the accident occurred between the hours of 6pm and 6am and day otherwise. Final predictors of interest as a measure of driver's drunk incidence included the driver's sex (Sex), age (Age), history of previous DWI convictions and driving suspensions (PrevDWIConvictions, PrevSuspensions), accident level atributes like number of fatalities, weekday status and day status (NumFatalities, WeekdayStatus, DayStatus) and county level variables like total population and income to poverty ratio in the past 12 months of the driver's state and county (TotalPopulation, IncomeToPovRatio). 
+  A FIPS code column was created and used as the basis for joining the FARS and the ACS datasets so that each driver is matched with the county and state aggregate population and income to poverty ratio measures. We also created weekday and day status predictors. The data given from FARS already had information about the day of the week the accident occurred as well as the time. In the FARS dataset, the variable for day equaled 1 for Sunday and 7 for Saturday. The weekend variable was therefore coded as a binary indicator of weekend using the day of week variable. We coded night for if the accident occurred between the hours of 6pm and 6am and day otherwise. Final predictors of interest as a measure of driver's drunk incidence included the driver's sex (Sex), age (Age), history of previous DWI convictions and driving suspensions (PrevDWIConvictions, PrevSuspensions), accident level atributes like number of fatalities, weekday status and day status (NumFatalities, WeekdayStatus, DayStatus) and county level variables like total population and income to poverty ratio in the past 12 months of the driver's state and county (TotalPopulation, IncomeToPovRatio). 
 
 ## Data Visualization/Exploration
 
@@ -90,7 +92,7 @@ The first of three components was the marker map. For every fatal accident in th
 
 Another feature of the marker map is that if a circle is clicked, a pop-up display will show up. The pop-up displays relevant information regarding the accident including whether a drunk driver was involved, the number of vehicles, the number of people, and the number of fatalities. The most important feature of the pop-up is that it displays the unique ID given to each accident. If there is a particularly interesting accident displayed on the marker map and the user would like to look into it, the ID provided the pop-up is essential. The user could take the ID, and match the accident from the map to the corresponding row in the dataset.
 
-The first map displayed on the next page is the marker map where the color is based on whether a drunk driver or not and the size is based on the number of fatilities in the accident. And the second map displayed is the marker map where the color is based on whether a drunk driver or not and the size is based on the number of people in the accident.
+The first map displayed on the next page is the marker map where the color is based on whether a drunk driver or not and the size is based on the number of fatilities in the accident. The second map displayed is the marker map where the color is based on whether a drunk driver or not and the size is based on the number of people in the accident.
 
 ![Marker map - Marker size based on number of fatalities](Shiny_Screenshots/marker1.PNG)
 
@@ -100,24 +102,24 @@ In the first map, the yellow dots are easy to make out whereas in the second map
 
 ### Choropleth Map 1
 
-The second of the three components was a choropleth map. The primary use of this component is to see how fatal traffic accidents involving drunk drivers varies from county to county and to explore possible relationships between drunk driving and other predictors. The user could select they wanted a state or a county level choropleth map. The user could also select whether they wanted the choropleth to be based on raw count of accidents or number of accidents per 100,000. Other features include selecting whether the data contained all accidents or only those involving drunk driver; whether to include accidents occurring during the weekend, the weekday, or both; and whether to include accidents occurring during the night, the day, or both. A nice feature of the second component of the shiny app is that it allows the users to zoom in on states they wish to explore further.
+The second of the three components was a choropleth map. The primary use of this component is to see how fatal traffic accidents involving drunk drivers varies from county to county and to explore possible relationships between drunk driving and other predictors. The user could select they wanted a state or a county level choropleth map. The user could also select whether they wanted the choropleth to be based on raw count of accidents or number of accidents per 100,000. Other features include selecting whether the data contained all accidents or only those involving drunk driver; whether to include accidents occurring during the weekend, the weekday, or both; and whether to include accidents occurring during the night, the day, or both. A convenient feature of the second component of the shiny app is that it allows the users to zoom in on states they wish to explore further.
 
 Displayed below is a county level choropleth map of the number of fatal accidents involving drunk drivers per 100,000 inhabitants. This was to normalize for population as the larger counties are expected to have larger raw counts. The darker the green the higher the rate of fatal accidents involving a drunk driver in that county.
 
 ![Number of Fatal Accidents Involving Drunk Driver per 100,000 people - County Level](Shiny_Screenshots/choropleth2.PNG)
 
-The visual above confirms that fatal accidents involving drunk drivers is not uniformly distributed. It seems that those counties with large populations (and therefore more raw accidents) seem to have more stable and lower rates of fatal accidents involving drunk drivers. This display also serves to point out the counties and regions with abnormally high rates of fatal traffic accidents involving drunk drivers. In particular, the Mountain West region seems to have the highest share of counties that are very green (and so have the largest rates of accidents involving drunk drivers).
+The visual above confirms that fatal accidents involving drunk drivers is not uniformly distributed. It seems that counties with large populations (and therefore more raw accidents) seem to have more stable and lower rates of fatal accidents involving drunk drivers. This display also serves to point out the counties and regions with abnormally high rates of fatal traffic accidents involving drunk drivers. In particular, the Mountain West region seems to have the highest share of counties that are very green (and so have the largest rates of accidents involving drunk drivers).
 
 ![Number of Fatal Accidents Involving Drunk Driver per 100,000 people - State Level](Shiny_Screenshots/choropleth3.PNG)
 
 The state level display confirms that the Mountain West region has high rates of accidents involving drunk drivers. In addition, the states in the South also seem to have relatively high rates of accidents involving drunk drivers. The Mountain Northwest and
 the South regions happens to be two of the poorer and less populated regions of America. This indicates that perhaps population and some measure of income at the county or state level could be valuable predictors for whether a driving involved in an accident was drunk or not.
 
-The last component of the shiny app will be discussed after our analysis is discussed.
+The last component of the shiny app will be discussed after our algorithmic/model analysis.
 
 
 ```{r}
-options(warn = -1)
+#options(warn = -1)
 set.seed(495)
 load("FinalDataUpdate.Rda")
 n <- nrow(Update1)
@@ -136,13 +138,22 @@ Binary dependent response variable (drunk or not drunk) was used, which satisfie
 modelAssess <- Update1 %>% dplyr::select(Age, PrevSuspensions, PrevDWIConvictions,
                                          NumFatalities, IncomeToPovRatio, TotalPopulation)
 modelAssess$NumFatalities <- as.numeric(modelAssess$NumFatalities)
+modelAssess <- modelAssess %>% rename(PreDWI = PrevDWIConvictions)
+modelAssess <- modelAssess %>% rename(PreSusp = PrevSuspensions)
+modelAssess <- modelAssess %>% rename(NumFatal = NumFatalities)
+modelAssess <- modelAssess %>% rename(TotalPop = TotalPopulation)
+
 corTable <- cor(modelAssess)
-print(xtable(corTable, caption = 'Assessing Independence with Correlation', caption.placement = 'top'))
+print(xtable(corTable, caption = 
+              'Assessing Independence Assumption', 
+             caption.placement = 'top', scalebox='0.75'))
 ```
+
+**Note**: In the table above: PreDWI = PreDWIConvictions, PreSusp = PrevSuspensions, NumFatal = NumFatalities and TotalPop = TotalPopulation. 
 
 Next we assessed the linearity assumption of logistic regression. Linearity assumption was satisfied for binary predictors like Sex, WeekdayStatus and DayStatus. For quantitative predictors, empirical logit plots were used to assess linearity. As the plots show, linearity assumption is mostly satisfied for these predictors. PrevDWIConvictions and PrevSuspensions predictors show some deviation from normality though the deviation is not especially great. 
 
-```{r}
+```{r fig.height=6, fig.width = 7}
 emplogit = function(x, y, binsize = NULL, ci = FALSE, probit = FALSE,
                     prob = FALSE, main = NULL, xlab = "", ylab = ""){
   if (length(x) != length(y))
@@ -195,7 +206,6 @@ emplogit = function(x, y, binsize = NULL, ci = FALSE, probit = FALSE,
 
 FinalData <- Update1
 par(mfrow=c(2,3))
-favstats(FinalData$PrevDWIConvictions)
 FinalData$DriverDrinking <- as.numeric(FinalData$DriverDrinking)
 FinalData$DriverDrinking <- as.numeric(FinalData$DriverDrinking)
 FinalData$DriverDrinking[FinalData$DriverDrinking == 1] <- 0
@@ -204,7 +214,7 @@ FinalData$DriverDrinking[FinalData$DriverDrinking == 2] <- 1
 emplogit(FinalData$Age, FinalData$DriverDrinking)
 title(sub = "Age")
 emplogit(FinalData$PrevDWIConvictions, FinalData$DriverDrinking)
-title(sub = "PrevDWIConvictionc")
+title(sub = "PrevDWIConvictions")
 emplogit(FinalData$PrevSuspensions, FinalData$DriverDrinking)
 title(sub = "PrevSuspensions")
 emplogit(FinalData$TotalPopulation, FinalData$DriverDrinking)
@@ -235,7 +245,7 @@ Predictors like the driver's sex, age, history of previous speeding suspensions,
 
   The coefficient for Sex indicates that holding other variables constant, if the driver is female, then there is about a 44% decrease in odds of a driver being drunk than if the driver was a male. Age indicates that the odds of a driver being drunk are about 2% lower given a one year increase in age. Lastly an increase in income to poverty ratio of one thousand is associated with a .4% decrease in odds of the driver being drunk. 
   
-```{r}
+```{r results = "asis"}
 logmodnew <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions + 
                 PrevDWIConvictions + NumFatalities + WeekdayStatus + DayStatus + 
                 IncomeToPovRatio + TotalPopulation,
@@ -247,17 +257,20 @@ logTable <- logTable %>% mutate(ExpEstimate = exp(estimate)) %>%
   dplyr::select(term, estimate, ExpEstimate, std.error, p.value) %>%
   rename(Estimate = estimate, Term = term,
          StdError = std.error, PValue = p.value)
-logTable  #added exponentiated estimate column in the model summary 
+#logTable  #added exponentiated estimate column in the model summary 
+print(xtable(logTable, caption = 
+               'Logistic Regression with Exponentiated Estimates'
+             ,caption.placement = 'top'))
 ```
 
 ### Logistic Regression Model Accuracy 
 
-Logistic regression was assessed with model accuracy. Cross validation with k = 100 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about about 0.81. Given the noisiness in the data, a .81 accuracy shows that our model performs very well.
+Logistic regression was assessed with model accuracy. Cross validation with k = 20 (data is iteratively split in training and test sets 100 times and accuracy is computed and averaged) was used. The accuracy from cross validation was about about 0.82. Given the noisiness in the data, a 0.82 accuracy shows that our model performs very well.
 
-```{r}
+```{r eval = FALSE}
 #Cross-validation for model assessment 
 dat <- FinalData
-k <- 5
+k <- 20
 acc <- NULL
 set.seed(123)
 
@@ -277,27 +290,33 @@ for(i in 1:k)
   misClasificError <- mean(answers != results)
   acc[i] <- 1-misClasificError
 }
-mean(acc)
+LogisticAcc <- mean(acc)
+#save(LogisticAcc, file = "LogisticAcc.Rda")
 ```
 
+```{r}
+meanAccuracyLog <- load("LogisticAcc.Rda")
+print(LogisticAcc)
+```
 
 ### Random Forest 
 
 #### Variable Importance 
 
-In addition to logistic regression, random forest was built to assess variable importance. Random forest is an ensemble modeling approach where output from many bootstrapped decision trees is aggregated to provide an estimate. About 100 trees were grown for the random forest model and the same predictors were regressed to predict drunk driving incidence as used for the logistic regression (Sex, Age, PrevDWIConvictions, PrevSuspensions, NumFatalities, WeekdayStatus, DayStatus, TotalPopulation, IncomeToPovRatio). 
+In addition to logistic regression, random forest was built to assess variable importance. Random forest is an ensemble modeling approach where output from many bootstrapped decision trees is aggregated to provide an estimate. About 50 trees were grown for the random forest model and the same predictors were regressed to predict drunk driving incidence as used for the logistic regression (Sex, Age, PrevDWIConvictions, PrevSuspensions, NumFatalities, WeekdayStatus, DayStatus, TotalPopulation, IncomeToPovRatio). 
 
   Variable importance plot was constructed to assess which features are highly predictive in forecasting drunk driving incidence. Mean decrease in accuracy and mean decrease in gini index (measure of the model misclassification rate) were used to assess importance. County level income to poverty ratio was the most important predictor according to the mean decrease accuracy index which means that exclusion of this predictor from the model would result in the highest decrease in accuracy. In comparison, total population was the most important predictor according to the mean decrease gini index indicating that total population results in the highest node purity, which signifies a low rate of misclassifying the driver as drunk. Additionally day status and previous driving suspension history were the next important predictors according to both the mean decrease accuracy and the mean decrease gini indices. 
   
   Least important predictors in predicting the drunk driving incident included the driver's sex and number of fatalities according to both mean decrease accuracy and mean decrease gini indices. Weekday status also does not appear to be a very informative predictor in predicting drunk driving incidence. 
   
-```{r}
+```{r fig.height= 5, fig.width = 8}
 set.seed(1000)
 train$DriverDrinking <- as.factor(train$DriverDrinking)
-modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
-                          NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
-                          TotalPopulation, data = train, ntree = 100, mtry = 4, 
-                        keep.forest = TRUE, importance = TRUE)
+modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + 
+                          PrevDWIConvictions + NumFatalities + WeekdayStatus + 
+                          DayStatus + IncomeToPovRatio + TotalPopulation, 
+                          data = train, ntree = 50, mtry = 4, 
+                          keep.forest = TRUE, importance = TRUE)
 #save(modForest, file = "modForest.Rda")
 #Importance plots  
 varImpPlot(modForest)
@@ -305,11 +324,11 @@ varImpPlot(modForest)
 
 ### Random Forest Model Assessment  
 
-Random forest model was assessed with accuracy validated through cross-validation. K value of 50 was specified in cross-validation, indicating that the data was split in a test and training set 50 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.81. Again, given the noisiness in the data, a .81 accuracy shows that our random forest performs very well. The logistic regression model and the random forest are about the same in terms of accuracy.
+Random forest model was assessed with accuracy validated through cross-validation. K value of 20 was specified in cross-validation, indicating that the data was split in a test and training set 20 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.80. Again, given the noisiness in the data, a 0.80 accuracy shows that our random forest performs very well. The logistic regression model and the random forest are about the same in terms of accuracy.
 
-```{r}
+```{r eval = FALSE}
 dat <- FinalData
-k <- 5
+k <- 20
 acc2 <- NULL
 set.seed(123)
 for(i in 1:k)
@@ -318,14 +337,21 @@ for(i in 1:k)
   index <- sample(seq_len(nrow(dat)),size=smp_size)
   train <- dat[index, ]
   test <- dat[-index, ]
-  modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
-                            NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
-                            TotalPopulation, data = train, ntree = 25, mtry = 4, 
-                          keep.forest = TRUE, importance = FALSE)
+  modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + 
+                             PrevDWIConvictions + NumFatalities + WeekdayStatus + 
+                            DayStatus + IncomeToPovRatio + TotalPopulation, 
+                            data = train, ntree = 25, mtry = 4, 
+                            keep.forest = TRUE, importance = FALSE)
   conf <- modForest1$confusion
   acc2[i] <- (sum(diag(conf)) / sum(conf))
 }
-mean(acc2)
+meanRandom <- mean(acc2)
+#save(meanRandom, file = "meanRandom.Rda")
+```
+
+```{r}
+meanAccuracy <- load("meanRandom.Rda")
+print(meanRandom)
 ```
 
 
@@ -359,10 +385,14 @@ There are a few important limitations to our work. First, the FARS dataset only 
   
 ## Summary and Takeaway
 
-We verified that fatal traffic accidents with drunk drivers are more likely at night and on the weekend. In addition, we checked that being young, having previous DWI convictions, and having previous driving suspensions are important personal level risk factors for drunk driving. Although much of what we learned is common knowledge, there are still some important novel takeaways from this project. With our results, we believe that risk factors at the county level (high population and low income to poverty ratio) are very important to predicting who is drunk driving or not than individual level risk factors (and maybe even more so). Also, sex is perhaps not as good of a predictor of drunk driving incidence in fatal traffic accidents as it is believed to be. 
+In summary, our study aims to predict drunk driving incidence based on individual level attributes like the driver’s sex, age and previous DWI convictions and driving suspensions, accident level factors like number of fatalities in the crash as well as the day of week and time of day of the accident and county level attributes like the total population and the income to poverty level ratio. We use Google BigQuery as a platform for housing our data as well as for performing the initial table joins. Logistic regression and random forest is then used to predict a driver’s drunk driving incidence (whether the driver involved in a fatal accident is drunk or not) based on these features.
 
-#ACS Dataset 
+We concluded that fatal traffic accidents involving drunk drivers are likely to occur at night and on weekends. In addition, we find that being young, having previous DWI convictions, and having previous driving suspensions are important personal level risk factors for drunk driving. Although much of what we learned is common knowledge, there are still some important novel takeaways from this project. With our results, we believe that risk factors at the county level (high population and low income to poverty ratio) are very important to predicting who is drunk driving or not than individual level risk factors (and maybe even more so). Also, sex is perhaps not as good of a predictor of drunk driving incidence in fatal traffic accidents as it is believed to be. In the future, this project could lead to policy implementations to address disparities in the number of fatal accidents caused by drunk driving. Government interventions can include educating the general public about safe driving habits as well as allocating specific amounts of budget to a county to aim to reduce the number of fatal crash incidents inspired by drunk driving. 
+
+## Technical Appendix
+
 ```{r eval = FALSE}
+####Creating the ACS dataset && wrangling 
 data("fips.state")
 data("fips.county")
 
@@ -376,17 +406,19 @@ countypopT <- setDT(countypop, keep.rownames = TRUE)[]
 countypopT <- countypopT %>% rename(StateCounty = rn) %>%
   mutate(StateCounty = as.factor(StateCounty))
 levels(countypopT$StateCounty)[levels(countypopT$StateCounty)
-                               =="Doña Ana County, New Mexico"] <- "Dona Ana County, New Mexico"
+                               =="Doña Ana County, New Mexico"] <- "Dona Ana County, 
+                                                                    New Mexico"
 
 countypopT <- countypopT %>%
-  separate(StateCounty, c("County.Name", "STATE_NAME"), ", ") %>% #separator by comma and space 
+  separate(StateCounty, c("County.Name", "STATE_NAME"), ", ") %>% 
   mutate(STATE_NAME = as.factor(STATE_NAME))
 
 #merge county and state data 
 fips.state <- fips.state %>% mutate(STATE_NAME = as.factor(STATE_NAME)) %>%
   rename(State = STUSAB)
 
-joinedData <- right_join(fips.state, fips.county, by = "State") #joinedData merge state and county by state 
+#joinedData merge state and county by state
+joinedData <- right_join(fips.state, fips.county, by = "State")  
 joinedData <- joinedData %>% mutate(County.Name = as.factor(County.Name))
 countypopT <- countypopT %>% mutate(County.Name = as.factor(County.Name))
 
@@ -405,10 +437,11 @@ incomeT <- incomeT %>% rename(StateCounty = rn) %>%
   mutate(StateCounty = as.factor(StateCounty))
 
 levels(incomeT$StateCounty)[levels(incomeT$StateCounty)
-                               =="Doña Ana County, New Mexico"] <- "Dona Ana County, New Mexico"
+                               =="Doña Ana County, New Mexico"] <- "Dona Ana County, 
+                                                                    New Mexico"
 
 incomeT <- incomeT %>%
-  separate(StateCounty, c("County.Name", "STATE_NAME"), ", ") %>% #separator by comma and space 
+  separate(StateCounty, c("County.Name", "STATE_NAME"), ", ") %>% 
   mutate(STATE_NAME = as.factor(STATE_NAME), County.Name = as.factor(County.Name))
 
 FinalIncome <- inner_join(joinedData, incomeT, by = c("County.Name", "STATE_NAME")) %>% 
@@ -421,22 +454,25 @@ CensusFinalD1 <- FinalCensus %>% dplyr::select(FIPSCode, C17002_001, B01003_001)
 #save(CensusFinalD1, file = "CensusFinalD1.Rda")
 ```
 
-#Drivers Dataset 
+
 ```{r eval = FALSE}
+####FARS Dataset wrangling 
 drivers <- read.csv("DriversData.csv") #only data for the drivers selected 
 
 #should get around 30000 observations: if more than person involved in an accident 
 
 drivers <- drivers %>% select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V_PREV_ACC, 
-                                V_PREV_SUS, V_PREV_DWI, V_PREV_SPD, V_VALIGN, V_VPAVETYP, V_VSURCOND,
-                                A_LGT_COND, A_FATALS, A_DRUNK_DR, A_WEATHER, A_WEATHER1, A_WEATHER2,
-                                A_WRK_ZONE, A_MAN_COLL, P_AGE, P_SEX, P_INJ_SEV, P_SEAT_POS, 
-                                P_AIR_BAG, P_EJECTION, P_EJ_PATH, P_DRINKING, P_DRUGS, 
-                                P_LAG_HRS, P_DOA, A_COUNTY, A_STATE, A_CITY, A_DAY_WEEK, A_HOUR)
+                                V_PREV_SUS, V_PREV_DWI, V_PREV_SPD, V_VALIGN, V_VPAVETYP, 
+                                V_VSURCOND, A_LGT_COND, A_FATALS, A_DRUNK_DR, A_WEATHER, 
+                                A_WEATHER1, A_WEATHER2, A_WRK_ZONE, A_MAN_COLL, P_AGE, 
+                                P_SEX, P_INJ_SEV, P_SEAT_POS, P_AIR_BAG, P_EJECTION, 
+                                P_EJ_PATH, P_DRINKING, P_DRUGS, P_LAG_HRS, P_DOA, A_COUNTY, 
+                                A_STATE, A_CITY, A_DAY_WEEK, A_HOUR)
 
 #Counting the county frequency by fips code
 drivers <- drivers %>% unique() %>%
-  mutate(A_STATE = readr::parse_number(A_STATE), A_COUNTY = readr::parse_number(A_COUNTY)) %>%
+  mutate(A_STATE = readr::parse_number(A_STATE), 
+         A_COUNTY = readr::parse_number(A_COUNTY)) %>%
   mutate(FIPSCode = ((1000*A_STATE) + A_COUNTY)) #fips code
 
 countiesL <- tally(drivers$FIPSCode) #tally by FIPSCode
@@ -464,7 +500,6 @@ FinalData <- CensusFinalD1 %>% mutate(FIPSCode = readr::parse_number(FIPSCode)) 
   right_join(filtereddrivers, by = "FIPSCode") #40422 observations
 FinalData <- na.omit(FinalData)
 
-########Build training and test models here
 FinalData <- FinalData %>% 
   rename(IncomeToPovRatio = C17002_001, #Quant
          TotalPopulation = B01003_001, #Quant
@@ -484,7 +519,8 @@ levels(FinalData$Sex) <- c("Male", "Female")
 
 #Creating weekend/weekday predictor 
 FinalData <- FinalData %>%
-  mutate(WeekdayStatus = ifelse(A_DAY_WEEK == '1' | A_DAY_WEEK == '7', "Weekend", "Weekday"))
+  mutate(WeekdayStatus = ifelse(A_DAY_WEEK == '1' | A_DAY_WEEK == '7', 
+                                "Weekend", "Weekday"))
 FinalData$WeekdayStatus <- as.factor(FinalData$WeekdayStatus)
 
 FinalData <- FinalData %>%
