@@ -241,7 +241,7 @@ logmodnew <- glm(formula = DriverDrinking ~ Sex + Age + PrevSuspensions +
                 PrevDWIConvictions + NumFatalities + WeekdayStatus + DayStatus + 
                 IncomeToPovRatio + TotalPopulation,
               family=binomial(link='logit'), data = train)
-save(logmodnew, file = "logisticmodFinal.Rda")
+#save(logmodnew, file = "logisticmodFinal.Rda")
 logmod <- logmodnew 
 logTable <- tidy(logmod)
 logTable <- logTable %>% mutate(ExpEstimate = exp(estimate))
@@ -476,7 +476,10 @@ FinalData <- FinalData %>%
   mutate(DayStatus = ifelse(A_HOUR < 6 | A_HOUR >= 18, "Night", "Day"))
 FinalData$DayStatus <- as.factor(FinalData$DayStatus)
 
-#save(FinalData, file = "FinalData.Rda")
+FinalData <- FinalData %>% filter(Age < 99)
+FinalData <- FinalData %>% filter(PrevDWIConvictions < 99)
+FinalData <- FinalData %>% filter(PrevSuspensions < 99)
+save(FinalData, file = "FinalDataDec22.Rda")
 ```
 
  
