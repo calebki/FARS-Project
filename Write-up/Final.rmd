@@ -85,14 +85,90 @@ The dataset was then split in test and training sets with a 70/30 split (70% dat
 
 ```{r}
 set.seed(495)
-load("FinalData.Rda")
-n <- nrow(FinalData)
-shuffled <- FinalData[sample(n),]
+load("FinalData2.Rda")
+n <- nrow(FinalData2)
+shuffled <- FinalData2[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 ```
 
 ### Logistic Regression 
+
+
+#### Logistic Regression Assessment
+
+Binary dependent response variable (drunk or not drunk) was used, which satisfies the condition that response variable be dichotomous for binary logistic regression. A correlation matrix was used to assess whether the explanatory variables were independent or had some underlying unaccounted dependence structure. As the correlation matrix shows below, 
+
+```{r}
+modelAssess <- mergeData %>% dplyr::select(Age, PrevSuspensions, PrevDWIConvictions, 
+                                           PrevSpeeding, NumFatalities, 
+                                           IncomeToPovRatio, TotalPopulation)
+modelAssess$NumFatalities <- as.numeric(modelAssess$NumFatalities)
+cor(modelAssess)
+```
+
+
+```{r}
+mergeData$DriverDrinking <- as.numeric(mergeData$DriverDrinking)
+FinalData2$DriverDrinking <- as.numeric(FinalData2$DriverDrinking)
+mergeData$DriverDrinking[mergeData$DriverDrinking == 1] <- 0
+mergeData$DriverDrinking[mergeData$DriverDrinking == 2] <- 1
+emplogit(mergeData$TotalPopulation, mergeData$DriverDrinking)
+title(sub = "small")
+emplogit(mergeData$IncomeToPovRatio, mergeData$DriverDrinking)
+
+
+
+emplogit = function(x, y, binsize = NULL, ci = FALSE, probit = FALSE,
+                    prob = FALSE, main = NULL, xlab = "", ylab = ""){
+  if (length(x) != length(y))
+    stop("x and y lengths differ")
+  if (any(y < 0 | y > 1))
+    stop("y not between 0 and 1")
+  if (length(x) < 100 & is.null(binsize))
+    stop("Less than 100 observations: specify binsize manually")
+
+  if (is.null(binsize)) binsize = min(round(length(x)/10), 50)
+
+  if (probit){
+    link = qnorm
+    if (is.null(main)) main = "Empirical probits"
+  } else {
+    link = function(x) log(x/(1-x))
+    if (is.null(main)) main = "Empirical logits"
+  }
+
+  sort = order(x)
+  x = x[sort]
+  y = y[sort]
+  a = seq(1, length(x), by=binsize)
+  b = c(a[-1] - 1, length(x))
+
+  prob = xmean = ns = rep(0, length(a)) # ns is for CIs
+  for (i in 1:length(a)){
+    range = (a[i]):(b[i])
+    prob[i] = mean(y[range])
+    xmean[i] = mean(x[range])
+    ns[i] = b[i] - a[i] + 1 # for CI 
+  }
+
+  extreme = (prob == 1 | prob == 0)
+  prob[prob == 0] = min(prob[!extreme])
+  prob[prob == 1] = max(prob[!extreme])
+
+  g = link(prob) # logits (or probits if probit == TRUE)
+
+  linear.fit = lm(g[!extreme] ~ xmean[!extreme])
+  b0 = linear.fit$coef[1]
+  b1 = linear.fit$coef[2]
+
+  loess.fit = loess(g[!extreme] ~ xmean[!extreme])
+
+    plot(xmean, g, main=main, xlab=xlab, ylab=ylab)
+    abline(b0,b1)
+    lines(loess.fit$x, loess.fit$fitted, lwd=2, lty=2)
+}
+```
 
 #### Predictors associated with increased drunk driving incidence
 
@@ -182,7 +258,8 @@ set.seed(1000)
 modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
                           PrevSpeeding + NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
                           TotalPopulation, data = train, ntree = 100, mtry = 4, 
-                        keep.forest = FALSE, importance = TRUE)
+                        keep.forest = TRUE, importance = TRUE)
+save(modForest, file = "modForest.Rda")
 #Importance plots  
 varImpPlot(modForest)
 ```
@@ -196,7 +273,7 @@ Random Forest was also assessed via accuracy. The accuracy for the initial test 
 modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + PrevDWIConvictions + 
                             PrevSpeeding + NumFatalities + WeekdayStatus + DayStatus + IncomeToPovRatio + 
                             TotalPopulation, data = train, ntree = 100, mtry = 4, 
-                          keep.forest = TRUE, importance = FALSE)
+                          keep.forest = TRUE, importance = TRUE)
 
 test.forest = predict(modForest1, type = "prob", newdata = test)
 forestpred = prediction(test.forest[,2], test$DriverDrinking)
