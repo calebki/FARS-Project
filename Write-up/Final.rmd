@@ -312,19 +312,19 @@ In addition to logistic regression, random forest was built to assess variable i
 ```{r fig.height= 5, fig.width = 8}
 set.seed(1000)
 train$DriverDrinking <- as.factor(train$DriverDrinking)
-modForest <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + 
+VariableImportancePlot <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + 
                           PrevDWIConvictions + NumFatalities + WeekdayStatus + 
                           DayStatus + IncomeToPovRatio + TotalPopulation, 
                           data = train, ntree = 50, mtry = 4, 
                           keep.forest = TRUE, importance = TRUE)
 #save(modForest, file = "modForest.Rda")
 #Importance plots  
-varImpPlot(modForest)
+varImpPlot(VariableImportancePlot)
 ```
 
 ### Random Forest Model Assessment  
 
-Random forest model was assessed with accuracy validated through cross-validation. K value of 20 was specified in cross-validation, indicating that the data was split in a test and training set 20 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.80. Again, given the noisiness in the data, a 0.80 accuracy shows that our random forest performs very well. The logistic regression model and the random forest are about the same in terms of accuracy.
+Random forest model was assessed with accuracy validated through cross-validation. K value of 20 was specified in cross-validation, indicating that the data was split in a test and training set 20 times and accuracy was calculated each time, producing an aggregate estimate of accuracy of about 0.81. Again, given the noisiness in the data, a 0.81 accuracy shows that our random forest performs very well. The logistic regression model and the random forest are about the same in terms of accuracy.
 
 ```{r eval = FALSE}
 dat <- FinalData
@@ -340,7 +340,7 @@ for(i in 1:k)
   modForest1 <- randomForest(DriverDrinking ~ Sex + Age + PrevSuspensions + 
                              PrevDWIConvictions + NumFatalities + WeekdayStatus + 
                             DayStatus + IncomeToPovRatio + TotalPopulation, 
-                            data = train, ntree = 25, mtry = 4, 
+                            data = train, ntree = 50, mtry = 4, 
                             keep.forest = TRUE, importance = FALSE)
   conf <- modForest1$confusion
   acc2[i] <- (sum(diag(conf)) / sum(conf))
