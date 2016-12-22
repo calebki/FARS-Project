@@ -365,7 +365,7 @@ According to the results above, county level predictors like income to poverty r
 
 The third component of the shiny app was another choropleth map. For this map, the focus shifted from data exploration to model assessment. For each county, the actual number of drunk drivers who were in a fatal traffic accident in 2015 was aggreated. Using the models, we also calculated the expected such drivers. The user can toggle between the logistic regression model and the random forest. In addition, the choropleth map can display the actual number of drunk drivers, the expected number, the difference between the numbers (actual - expected), and a scaled difference ([actual - expected]/actual). Using this interactive map, the user can easily visualize how the model performed in each county.
 
-Displayed below are the choropleth maps for both the logistic regression model and the random forest with the scaled difference statistic. 
+Displayed below (and the next page) are the choropleth maps for both the logistic regression model and the random forest with the scaled difference statistic. 
 
 ![Scaled Difference - Logistic Regression](Shiny_Screenshots/choropleth4.PNG)
 
