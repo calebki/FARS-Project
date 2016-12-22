@@ -44,7 +44,7 @@ accidents <- read.csv("mapsaccident.csv")
 codeInfo <- read.csv("GLCounty.csv")
 load("logisticmodFinal.Rda")
 load("modForest.Rda")
-load("FinalData1.Rda")
+load("FinalData.Rda")
 drivers <- FinalData %>% mutate(FIPSCode = readr::parse_number(FIPSCode))
 
 accidents <- head(accidents, nrow(accidents)-1) %>%
