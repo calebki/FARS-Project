@@ -81,7 +81,56 @@ The FARS dataset was cleaned to remove any observations with unreported sex, dru
 
 ## Data Visualization/Exploration
 
-In order to visualize and explore the data, the shiny, leaflet and choroplethr packages were used. The findings from the shiny app will be detailed below, but the app itself can be found at this \href{https://r.amherst.edu/apps/cki17/Maps/}{link}.
+In order to visualize and explore the data, the shiny, leaflet and choroplethr packages were used. The findings from the shiny app will be detailed below, but the app itself can be found at this \href{https://r.amherst.edu/apps/cki17/Maps/}{link}. The shiny app was made up of three components: a marker map made using leaflet and two choropleth maps with different forms of interactivity.
+
+### Marker Map
+The first of three components was the marker map. For every fatal accident in the year 2015, there was a circle representing the accident at the location of the accident on the map (using latitude and longitude). The user could choose whether to color code the circles by whether a drunk driver was involved or not, whether it was a weekend or weekday, or whether it was night (between 6pm and 6am) or day. The user could also choose to scale the dot size by the number of fatilities or the number of people involved in the accident. 
+
+Displayed below is the marker map where the color is based on whether a drunk driver or not and the size is based on the number of fatilities in the accident.
+
+![Figure 4](Shiny_Screenshots/marker1.PNG)
+
+And displayed below here is the marker map where the color is based on whether a drunk driver or not and the size is based on the number of people in the accident.
+
+![Figure 5](Shiny_Screenshots/marker2.PNG)
+
+In the first map, the yellow dots are easy to make out whereas in the second map, the yellow dots are muted. This indicates that a drunk driver was not present in the accidents with largest number of people involved. On the other hand, a drunk driver was present in some of the accidents with the largest number of people who died. This indicates that there maybe a direct relationship between whether a drunk driver was involved in an accidents and the number of fatalities or an inverse relationship between whether a drunk driver was involved and the number of people who were involved. This is something we explore later.
+
+Another feature of the marker map is that if a circle is clicked, a pop-up display will show up. An example is given below.
+
+![Figure 6](Shiny_Screenshots/marker3.PNG)
+
+The pop-up displays relevant information regarding the accident including whether a drunk driver was involved, the number of vehicles, the number of people, and the number of fatalities. The most important feature of the pop-up is that it displays the unique ID given to each accident. If there is a particularly interesting accident displayed on the marker map and the user would like to look into it, the ID provided the pop-up is essential. The user could take the ID, and match the accident from the map to the corresponding row in the dataset.
+
+### Choropleth Map 1
+
+The second of the three components was a choropleth map. The primary use of this component is to see how fatal traffic accidents involving drunk drivers varies from county to county and to explore possible relationships between drunk driving and other predictors. The user could select they wanted a state or a county level choropleth map. The user could also select whether they wanted the choropleth to be based on raw count of accidents or number of accidents per 100,000. Other features include selecting whether the data contained all accidents or only those involving drunk driver; whether to include accidents occurring during the weekend, the weekday, or both; and whether to include accidents occurring during the night, the day, or both. 
+
+Displayed below is a county level choropleth map of raw count of fatal accidents involving drunk drivers. The darker the green the more fatal accidents involving a drunk driver in that county.
+
+![Figure 7](Shiny_Screenshots/choropleth1.PNG)
+
+Displayed below is a county level choropleth map of the number of fatal accidents involving drunk drivers per 100,000 inhabitants. This was to normalize for population as the larger counties are expected to have larger raw counts.
+
+![Figure 8](Shiny_Screenshots/choropleth2.PNG)
+
+The two visuals above confirm that fatal accidents involving drunk drivers is not uniformly distributed both in terms of raw count and rate. From the differences in the first visual to the second, it seems that those counties with large populations (and therefore more raw accidents) seem to have more stable rates of fatal accidents involving drunk drivers. These displays also serve to point out the counties and regions with abnormally high rates of fatal traffic accidents involving drunk drivers. In particular, the Mountain West region seems to have the highest share of counties that are very green (and so have the largest rates of accidents involving drunk drivers).
+
+This next display is a state level county level choropleth map of the number of fatal accidents involving drunk drivers per 100,000 inhabitants.
+
+![Figure 9](Shiny_Screenshots/choropleth3.PNG)
+
+The state level display confirms that the Mountain West region has high rates of accidents involving drunk drivers. In addition, the states in the South also seem to have relatively high rates of accidents involving drunk drivers. The Mountain Northwest and
+the South regions happens to be two of the poorer and less populated regions of America. This indicates that perhaps population and some measure of income at the county or state level could be valuable predictors for whether a driving involved in an accident was drunk or not.
+
+A nice feature of the second component of the shiny app is that it allows the users to zoom in on states they wish to explore further. As an example, displayed below are choropleth plots zoomed in on the states of New Jersey and Wyoming. Morris County and Fremont County (the counties discussed in the motivation section) are marked by a blue X. 
+
+![Figure 10](Shiny_Screenshots/zoom1.PNG)
+![Figure 11](Shiny_Screenshots/zoom2.PNG)
+
+The visual confirms that indeed the rates of fatal traffic accidents involving drunk drivers is much higher in Fremont County than in Morris County.
+
+The last component of the shiny app will be discussed after our analysis is discussed.
 
 ## Results/Analysis
 
