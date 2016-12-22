@@ -8,9 +8,10 @@
 #
 
 library(shiny)
+library(choroplethrMaps)
 library(mdsr)
 library(leaflet)
-library(choroplethrMaps)
+
 
 data("state.regions")
 accidents <- read.csv("mapsaccident.csv")
