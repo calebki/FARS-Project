@@ -31,7 +31,7 @@ library(ROCR)
 trellis.par.set(theme=theme.mosaic()) # change default color scheme for lattice
 knitr::opts_chunk$set(
   tidy=FALSE,     # display code as typed
-  size="small")   # slightly smaller font for code
+  size="drivers")   # slightly driverser font for code
 ```
 
 ## Introduction
@@ -81,10 +81,9 @@ The FARS dataset was cleaned to remove any observations with unreported sex, dru
 The dataset was then split in test and training sets with a 70/30 split (70% data in training and 30% in test set) where the training set had 27,678 observations while the test set had 11,862 observations. Logistic regression was used first to assess whether drunk driving incidence can be predicted by the above mentioned predictors followed by random forest. Both models were built on the training data and then assessed on the test data via accuracy and ROC curves.
 
 ```{r}
-FinalData <- load("FinalData2.Rda")
-mergeData <- FinalData2
-n <- nrow(mergeData)
-shuffled <- mergeData[sample(n),]
+load("FinalData.Rda")
+n <- nrow(FinalData)
+shuffled <- FinalData[sample(n),]
 train <- shuffled[1:round(0.7 * n),]
 test <- shuffled[(round(0.7 * n) + 1):n,]
 ```
@@ -139,7 +138,7 @@ auc <- auc@y.values[[1]]
 auc #75% accurate 
 
 #Cross-validation for model assessment 
-dat <- mergeData
+dat <- FinalData
 k <- 100
 acc <- NULL
 set.seed(123)
@@ -202,7 +201,7 @@ plot(perf, main="Random Forest ROC [Accuracy: 0.74]")
 conf <- modForest1$confusion
 print(sum(diag(conf)) / sum(conf)) 
 
-dat <- mergeData
+dat <- FinalData
 k <- 50
 acc2 <- NULL
 set.seed(123)
@@ -307,90 +306,75 @@ CensusFinalD1 <- FinalCensus %>% dplyr::select(FIPSCode, C17002_001, B01003_001)
 
 #Drivers Dataset 
 ```{r eval = FALSE}
-data1 <- read.csv("DriversData.csv") #only data for the drivers selected 
+drivers <- read.csv("DriversData.csv") #only data for the drivers selected 
 
 #should get around 30000 observations: if more than person involved in an accident 
 
-small <- data1 %>% select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V_PREV_ACC, 
+drivers <- drivers %>% select(V_V_CONFIG, V_TRAV_SP, V_DEFORMED, V_DR_DRINK, V_PREV_ACC, 
                                 V_PREV_SUS, V_PREV_DWI, V_PREV_SPD, V_VALIGN, V_VPAVETYP, V_VSURCOND,
                                 A_LGT_COND, A_FATALS, A_DRUNK_DR, A_WEATHER, A_WEATHER1, A_WEATHER2,
                                 A_WRK_ZONE, A_MAN_COLL, P_AGE, P_SEX, P_INJ_SEV, P_SEAT_POS, 
                                 P_AIR_BAG, P_EJECTION, P_EJ_PATH, P_DRINKING, P_DRUGS, 
                                 P_LAG_HRS, P_DOA, A_COUNTY, A_STATE, A_CITY, A_DAY_WEEK, A_HOUR)
 
-filter <- unique(small) 
-small <- filter
-
 #Counting the county frequency by fips code
+drivers <- drivers %>% unique() %>%
+  mutate(A_STATE = readr::parse_number(A_STATE), A_COUNTY = readr::parse_number(A_COUNTY)) %>%
+  mutate(FIPSCode = ((1000*A_STATE) + A_COUNTY)) #fips code
 
-small$A_STATE <- as.numeric(small$A_STATE)
-small$A_COUNTY <- as.numeric(small$A_COUNTY)
-small <- small %>% mutate(FIPSCode = ((1000*A_STATE) + A_COUNTY)) #fips code 
-
-
-countiesL <- tally(small$FIPSCode) #tally by FIPSCode
-data4 <- data.frame(countiesL)
-data6 <- rename(data4, FIPSCode = X)
-data7 <- merge(data6, small) 
-data7 <- unique(data7) 
+countiesL <- tally(drivers$FIPSCode) #tally by FIPSCode
+filtereddrivers <- data.frame(countiesL) %>%
+  rename(FIPSCode = X) %>%
+  mutate(FIPSCode = readr::parse_number(FIPSCode)) %>%
+  right_join(drivers) 
 
 #create new variable here: only counties 
-data8 <- data7 %>%
-  filter(Freq > 10)
-
-data8$P_SEX = as.factor(data8$P_SEX)
-data8$P_DRUGS = as.factor(data8$P_DRUGS)
-data8$P_DOA = as.factor(data8$P_DOA)
-data8$V_DR_DRINK = as.factor(data8$V_DR_DRINK)
-
-data8 <- rename(data8, state = A_STATE)
-data8 <- rename(data8, county = A_COUNTY)
-data8$state = as.factor(data8$state)
-data8$county = as.factor(data8$county)
-
-data8 <- data8 %>% mutate(TravSpeed = as.numeric(V_TRAV_SP),
-                          Age = as.numeric(P_AGE),
-                          PDWI = as.numeric(V_PREV_DWI),
-                          PSuspension = as.numeric(V_PREV_SUS),
-                          PCrash = as.numeric(V_PREV_ACC),
-                          PSpeed = as.numeric(V_PREV_SPD))
-
-data9 <- data8
+filtereddrivers <- filtereddrivers %>%
+  filter(Freq > 10) %>%
+  mutate(P_SEX = as.factor(P_SEX), P_DRUGS = as.factor(P_DRUGS),
+         P_DOA = as.factor(P_DOA), V_DR_DRINK = as.factor(V_DR_DRINK),
+         A_STATE = as.factor(A_STATE), A_COUNTY = as.factor(A_COUNTY)) %>%
+  rename(state = A_STATE, county = A_COUNTY) %>% 
+  mutate(TravSpeed = readr::parse_number(V_TRAV_SP),
+         Age = readr::parse_number(P_AGE),
+         PDWI = readr::parse_number(V_PREV_DWI),
+         PSuspension = readr::parse_number(V_PREV_SUS),
+         PCrash = readr::parse_number(V_PREV_ACC),
+         PSpeed = readr::parse_number(V_PREV_SPD))
 
 ACS <- load("CensusFinalD1.Rda")
-CensusFinalD1$FIPSCode <- as.factor(CensusFinalD1$FIPSCode)
-FinalMerge2 <- CensusFinalD1 %>% right_join(data9, by = "FIPSCode") #40422 observations
-FinalMerge2 <- na.omit(FinalMerge2)
+FinalData <- CensusFinalD1 %>% mutate(FIPSCode = readr::parse_number(FIPSCode)) %>% 
+  right_join(filtereddrivers, by = "FIPSCode") #40422 observations
+FinalData <- na.omit(FinalData)
 
 ########Build training and test models here
-FinalMerge2 <- rename(FinalMerge2, IncomeToPovRatio = C17002_001) #Quant
-FinalMerge2 <- rename(FinalMerge2, TotalPopulation = B01003_001) #Quant
-FinalMerge2 <- rename(FinalMerge2, Sex = P_SEX) #Cat
-FinalMerge2 <- rename(FinalMerge2, PrevDWIConvictions = PDWI) #Quantitative
-FinalMerge2 <- rename(FinalMerge2, PrevSpeeding = PSpeed) #Quantitative
-FinalMerge2 <- rename(FinalMerge2, PrevSuspensions = PSuspension) #Quant
-FinalMerge2 <- rename(FinalMerge2, VehicleSpeed = TravSpeed) #Quant
-FinalMerge2 <- rename(FinalMerge2, ReportedDrugs = P_DRUGS) #Cat
-FinalMerge2 <- rename(FinalMerge2, NumFatalities = A_FATALS) #Quant
-FinalMerge2 <- rename(FinalMerge2, DeathSceneStatus = P_DOA) #Cat
-FinalMerge2 <- rename(FinalMerge2, DriverDrinking = V_DR_DRINK) #Cat
+FinalData <- FinalData %>% 
+  rename(IncomeToPovRatio = C17002_001, #Quant
+         TotalPopulation = B01003_001, #Quant
+         Sex = P_SEX, #Categorical
+         PrevDWIConvictions = PDWI, #Quantitative
+         PrevSpeeding = PSpeed, #Quantitative
+         PrevSuspensions = PSuspension, #Quant
+         VehicleSpeed = TravSpeed, #Quant
+         ReportedDrugs = P_DRUGS, #Categorical
+         NumFatalities = A_FATALS, #Quant
+         DeathSceneStatus = P_DOA, #Categorical
+         DriverDrinking = V_DR_DRINK) %>% #Categorical
+  filter(Sex == '1' | Sex == '2')
 
-FinalMerge2 <- FinalMerge2 %>% filter(Sex == '1' | Sex == '2')
-FinalMerge2$Sex <- droplevels(FinalMerge2$Sex)
-levels(FinalMerge2$Sex) <- c("Male", "Female")
+FinalData$Sex <- droplevels(FinalData$Sex)
+levels(FinalData$Sex) <- c("Male", "Female")
 
 #Creating weekend/weekday predictor 
-FinalMerge2 <- FinalMerge2 %>%
+FinalData <- FinalData %>%
   mutate(WeekdayStatus = ifelse(A_DAY_WEEK == '1' | A_DAY_WEEK == '7', "Weekend", "Weekday"))
-FinalMerge2$WeekdayStatus <- as.factor(FinalMerge2$WeekdayStatus)
+FinalData$WeekdayStatus <- as.factor(FinalData$WeekdayStatus)
 
-FinalMerge2 <- FinalMerge2 %>%
+FinalData <- FinalData %>%
   mutate(DayStatus = ifelse(A_HOUR < 6 | A_HOUR >= 18, "Night", "Day"))
-FinalMerge2$DayStatus <- as.factor(FinalMerge2$DayStatus)
-mergeData <- FinalMerge2
-FinalData2 <- mergeData
+FinalData$DayStatus <- as.factor(FinalData$DayStatus)
 
-#save(FinalData2, file = "FinalData2.Rda")
+#save(FinalData, file = "FinalData.Rda")
 ```
 
 
