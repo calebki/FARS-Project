@@ -15,6 +15,7 @@ library(leaflet)
 library(RColorBrewer)
 library(scales)
 library(tidyr)
+library(randomForest)
 
 data("fips.state")
 data("fips.county")
@@ -196,9 +197,10 @@ shinyServer(function(input, output) {
         numAccidents <- numAccidents %>% left_join(countypop, by = "region") %>%
           mutate(value = value / (population/100000))
       }
-      county_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes") +
-        scale_fill_brewer(palette = 2, na.value = "gray71") +
-        labs(title = "Number of Accidents")
+      choro = CountyChoropleth$new(numAccidents)
+      choro$ggplot_scale = scale_fill_brewer(name="Number of Crashes", palette=2, drop=FALSE, na.value="gray71")
+      choro$set_zoom(z)
+      choro$render()
     }
     
     else {
@@ -217,9 +219,7 @@ shinyServer(function(input, output) {
           mutate(value = value / (Population/100000))
       }
       
-      state_choropleth(numAccidents, zoom = z, legend = "Number of Crashes") +
-        scale_fill_brewer(palette = 2, na.value = "gray71") +
-        labs = ("Number of Accidents")
+      state_choropleth(numAccidents, zoom = z, legend = "Number of Crashes")
     }
 
   })
@@ -273,15 +273,19 @@ shinyServer(function(input, output) {
     }
     
     if(displaytype() == "actual") {
-      county_choropleth(actual, state_zoom = z, legend = "Number of Drunk Drivers") +
-        scale_fill_brewer(palette = 2, na.value = "gray71") +
-        labs(title = "Actual Number of Drunk Drivers")
+      choro = CountyChoropleth$new(actual)
+      choro$title = "Actual Number of Drunk Drivers"
+      choro$ggplot_scale = scale_fill_brewer(name="Number of Drivers", palette=2, drop=FALSE, na.value="gray71") 
+      choro$set_zoom(z)
+      choro$render() 
     }
       
     else if(displaytype() == "expected") {
-      county_choropleth(expected, state_zoom = z, legend = "Number of Drunk Drivers") +
-        scale_fill_brewer(palette = 2, na.value = "gray71") +
-        labs(title = "Expected Number of Drunk Drivers")
+      choro = CountyChoropleth$new(expected)
+      choro$title = "Expected Number of Drunk Drivers"
+      choro$ggplot_scale = scale_fill_brewer(name="Number of Drivers", palette = 2, drop=FALSE, na.value="gray71") 
+      choro$set_zoom(z)
+      choro$render() 
     }
     
     else {
@@ -290,15 +294,19 @@ shinyServer(function(input, output) {
       
       if(displaytype() == "difference2") {
         difference <- difference %>% mutate(value = value/value.x)
-        county_choropleth(difference, state_zoom = z, legend = "Expected - Actual") +
-          scale_fill_brewer(palette = "PRGn", na.value = "gray71") +
-          labs(title = "(Actual - Expected)/Actual Number of Drunk Drivers")
+        choro = CountyChoropleth$new(difference)
+        choro$title = "(Actual - Expected)/Actual Number of Drunk Drivers"
+        choro$ggplot_scale = scale_fill_brewer(name="Number of Drivers", palette = "PRGn", drop=FALSE, na.value="gray71")
+        choro$set_zoom(z)
+        choro$render()
       }
       
       else {
-        county_choropleth(difference, state_zoom = z, legend = "Expected - Actual") +
-          scale_fill_brewer(palette = "PRGn", na.value = "gray71") +
-          labs(title = "Actual - Expected Number of Drunk Drivers")
+        choro = CountyChoropleth$new(difference)
+        choro$title = "Actual - Expected Number of Drunk Drivers"
+        choro$ggplot_scale = scale_fill_brewer(name="Number of Drivers", palette = "PRGn", drop=FALSE, na.value="gray71")
+        choro$set_zoom(z)
+        choro$render()
       }
 
     }
