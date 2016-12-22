@@ -43,7 +43,7 @@ names(df10) <- c("STATE", "Population")
 
 accidents <- read.csv("mapsaccident.csv")
 codeInfo <- read.csv("GLCounty.csv")
-load("logisticmodFinal.Rda")
+load("logisticmod.Rda")
 load("modForest.Rda")
 load("FinalData.Rda")
 drivers <- FinalData %>% mutate(FIPSCode = readr::parse_number(FIPSCode))
@@ -258,7 +258,7 @@ shinyServer(function(input, output) {
       z <- statezoom2()
     }
     
-    if(modtype() == "regresssion") {
+    if(modtype() == "regression") {
       expected <- drivers %>%
         select(region = FIPSCode, predVal) %>%
         group_by(region) %>%
