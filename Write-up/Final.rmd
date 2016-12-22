@@ -348,17 +348,6 @@ for(i in 1:k)
 mean(acc2)
 ```
 
-### Logistic Regression and Random Forest 
-
-Lastly the Receiver Operating Curve (ROC) was used to compare both logistic regression and random forest models. 
-
-```{r}
-
-
-
-```
-
-
 
 ## Discussion 
 
