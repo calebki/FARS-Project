@@ -53,6 +53,17 @@ vars7 <- c(
   "Day" = "day"
 )
 
+vars8 <- c(
+  "Logistic Regression" = "regression",
+  "Random Forest" = "forest"
+)
+
+vars9 <- c(
+  "Actual" = "actual",
+  "Expected" = "expected",
+  "Difference" = "difference"
+)
+
 shinyUI(navbarPage("FARS", id = "nav",
   
   tabPanel("Marker Map",
@@ -96,5 +107,26 @@ shinyUI(navbarPage("FARS", id = "nav",
         plotOutput("cmap")
       )
     )
+  ),
+  
+  tabPanel("Choropleth For Model",
+           
+    sidebarLayout(
+      sidebarPanel(
+        radioButtons(inputId = "reg_or_forest", "Model Type", vars8),
+               
+        radioButtons(inputId = "reg_or_diff", "Count Type", vars9),
+        
+        selectInput(inputId = "zoom2", "Zoom", c("No zoom", state.regions$region))
+      ),
+             
+      mainPanel(
+        titlePanel("Choropleth for Model"),
+        
+        plotOutput("cmap2")
+      )
+    )
   )
+  
+  
 ))

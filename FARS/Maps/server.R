@@ -42,6 +42,10 @@ names(df10) <- c("STATE", "Population")
 
 accidents <- read.csv("mapsaccident.csv")
 codeInfo <- read.csv("GLCounty.csv")
+load("logisticmodFinal.Rda")
+load("modForest.Rda")
+load("FinalData1.Rda")
+drivers <- FinalData %>% mutate(FIPSCode = readr::parse_number(FIPSCode))
 
 accidents <- head(accidents, nrow(accidents)-1) %>%
   mutate(STATE = readr::parse_number(STATE), COUNTY = readr::parse_number(COUNTY),
@@ -186,19 +190,20 @@ shinyServer(function(input, output) {
     
     if(maptype() == "county") {
       temp <- temp %>% mutate(region = STATE * 1000 + COUNTY)
-      numAccidents <- temp %>% group_by(region) %>% summarize(value = n())
+      numAccidents <- temp %>% group_by(region) %>% dplyr::summarize(value = n())
       
       if(counttype() == "normal") {
         numAccidents <- numAccidents %>% left_join(countypop, by = "region") %>%
           mutate(value = value / (population/100000))
       }
-      county_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes")
+      county_choropleth(numAccidents, state_zoom = z, legend = "Number of Crashes") +
+        scale_fill_brewer(palette = 2, na.value = "gray71")
     }
     
     else {
       
       numAccidents <- temp %>% group_by(STATE) %>% 
-        summarize(value = n())
+        dplyr::summarize(value = n())
       temp2 <- as.factor(sapply(numAccidents$STATE, addzero))
       numAccidents$STATE <- temp2
       numAccidents <- state.map %>% 
@@ -211,9 +216,78 @@ shinyServer(function(input, output) {
           mutate(value = value / (Population/100000))
       }
       
-      state_choropleth(numAccidents, zoom = z, legend = "Number of Crashes")
+      state_choropleth(numAccidents, zoom = z, legend = "Number of Crashes") +
+        scale_fill_brewer(palette = 2, na.value = "gray71")
     }
 
   })
+  
+  # Second choropleth map ======================================
+  
+  predVal <- predict.glm(logmodnew, newdata = drivers, type = "response")
+  predVal2 <- predict(modForest, newdata = drivers,type = "prob")[,2]
+  drivers <- cbind(drivers, predVal, predVal2)
+  
+  modtype <- reactive({
+    input$reg_or_forest
+  })
+  
+  displaytype <- reactive({
+    input$reg_or_diff
+  })
+  
+  statezoom2 <- reactive({
+    input$zoom2
+  })
+  
+  actual <- drivers %>% 
+    select(region = FIPSCode, DriverDrinking) %>%  
+    filter(DriverDrinking == 1) %>% 
+    group_by(region) %>% 
+    dplyr::summarize(value = n())
+  
+  output$cmap2 <- renderPlot({
+    
+    if(statezoom2() == "No zoom") {
+      z <- NULL
+    }
+    
+    else{
+      z <- statezoom2()
+    }
+    
+    if(modtype() == "regresssion") {
+      expected <- drivers %>%
+        select(region = FIPSCode, predVal) %>%
+        group_by(region) %>%
+        dplyr::summarize(value = sum(predVal))
+    }
+    
+    else {
+      expected <- drivers %>%
+        select(region = FIPSCode, predVal2) %>%
+        group_by(region) %>%
+        dplyr::summarize(value = sum(predVal2))
+    }
+    
+    if(displaytype() == "actual") {
+      county_choropleth(actual, state_zoom = z, legend = "Number of Drunk Drivers") +
+        scale_fill_brewer(palette = 2, na.value = "gray71")
+    }
+      
+    else if(displaytype() == "expected") {
+      county_choropleth(expected, state_zoom = z, legend = "Number of Drunk Drivers") +
+        scale_fill_brewer(palette = 2, na.value = "gray71")  
+    }
+    
+    else {
+      difference <- left_join(actual, expected, by = "region") %>% 
+        mutate(value = value.x - value.y)
+      
+      county_choropleth(difference, state_zoom = z, legend = "Expected Number of Drunk Drivers - Actual") +
+        scale_fill_brewer(palette = "GnBu", na.value = "gray71")
+    }
     
   })
+    
+})
